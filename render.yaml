@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: lifeguard-emergency-app
+    runtime: node
+    plan: free
+    region: singapore # Close to India for fast response times!
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+    healthCheckPath: /health

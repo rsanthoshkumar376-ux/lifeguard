@@ -1,0 +1,92 @@
+{
+  "app": {
+    "name": "LifeGuard",
+    "tagline": "Medical Emergency & Blood Donor Assistance"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "email": "Email Address",
+    "password": "Password",
+    "forgotPassword": "Forgot Password?",
+    "noAccount": "Don't have an account?",
+    "signUp": "Sign up here"
+  },
+  "home": {
+    "welcome": "Welcome back",
+    "quickActions": "Quick Actions",
+    "nearbyHospitals": "Nearby Hospitals",
+    "recentActivity": "Recent Activity"
+  },
+  "emergency": {
+    "title": "Emergency",
+    "medicalId": "Medical ID",
+    "sos": "SOS Alert",
+    "scanQr": "Scan QR Code",
+    "callAmbulance": "Call Ambulance",
+    "notifyContacts": "Notify Emergency Contacts",
+    "viewProfile": "View Emergency Profile"
+  },
+  "blood": {
+    "request": "Request Blood",
+    "donate": "Donate Blood",
+    "iCanDonate": "I Can Donate",
+    "bloodGroup": "Blood Group",
+    "units": "Units Required",
+    "urgency": "Urgency",
+    "activeRequests": "Active Blood Requests"
+  },
+  "profile": {
+    "medical": "Medical Profile",
+    "settings": "Settings",
+    "allergies": "Allergies",
+    "medications": "Current Medications",
+    "conditions": "Medical Conditions",
+    "edit": "Edit Profile"
+  },
+  "hospital": {
+    "dashboard": "Hospital Dashboard",
+    "register": "Register Hospital",
+    "verifyStatus": "Verification Status",
+    "createRequest": "Create Blood Request"
+  },
+  "admin": {
+    "dashboard": "Admin Dashboard",
+    "manageUsers": "Manage Users",
+    "verifyHospitals": "Verify Hospitals",
+    "monitorRequests": "Monitor Requests"
+  },
+  "qr": {
+    "title": "My QR Code",
+    "scanToHelp": "Scan in case of emergency",
+    "generate": "Generate QR"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "loading": "Loading...",
+    "success": "Success",
+    "error": "Error",
+    "yes": "Yes",
+    "no": "No",
+    "back": "Back"
+  },
+  "notifications": {
+    "enable": "Enable Notifications",
+    "later": "Maybe Later",
+    "description": "Get instant alerts for emergency blood requests near you."
+  },
+  "errors": {
+    "network": "Network error occurred.",
+    "unauthorized": "You are not authorized to view this page.",
+    "notFound": "Page not found."
+  },
+  "disclaimers": {
+    "medical": "This information is provided by the user and should be verified by a medical professional.",
+    "blood": "Ensure you meet all eligibility criteria before donating blood."
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "dataProtection": "Your medical data is encrypted and strictly accessible only by you and emergency responders scanning your QR code."
+  }
+}

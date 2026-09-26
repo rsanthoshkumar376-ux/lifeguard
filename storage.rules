@@ -1,0 +1,52 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/jpeg') || 
+             request.resource.contentType.matches('image/png') || 
+             request.resource.contentType.matches('image/webp');
+    }
+    
+    function isDocument() {
+      return isImage() || request.resource.contentType.matches('application/pdf');
+    }
+
+    function isUnderSize(maxMegabytes) {
+      return request.resource.size < maxMegabytes * 1024 * 1024;
+    }
+
+    // Profile photos: Any authenticated user can read. Owner can upload. Max 5MB, images only.
+    match /users/{userId}/profilePhotos/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId) && isImage() && isUnderSize(5);
+      allow delete: if isOwner(userId);
+    }
+
+    // Medical documents: Strict owner only. Max 20MB, images or pdf.
+    match /users/{userId}/medicalDocuments/{fileName} {
+      allow read, write: if isOwner(userId);
+      allow create: if isOwner(userId) && isDocument() && isUnderSize(20);
+      allow delete: if isOwner(userId);
+    }
+
+    // Hospital Verification Docs: Owner uploads, Admin reads. Max 10MB.
+    match /hospitals/{hospitalId}/verificationDocs/{fileName} {
+      allow read: if isAuthenticated() && (request.auth.uid == resource.metadata.ownerId || isAdmin());
+      allow create: if isAuthenticated() && isDocument() && isUnderSize(10);
+      allow delete: if isAdmin();
+    }
+  }
+}

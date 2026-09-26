@@ -1,0 +1,133 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ---------------------------------------------------------
+    // HELPER FUNCTIONS
+    // ---------------------------------------------------------
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    function isHospitalStaff() {
+      return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'hospital_staff';
+    }
+    
+    function isVerifiedHospital(hospitalId) {
+      let hospital = get(/databases/$(database)/documents/hospitals/$(hospitalId));
+      return hospital != null && hospital.data.status == 'verified';
+    }
+
+    // ---------------------------------------------------------
+    // USERS & ROLES
+    // ---------------------------------------------------------
+    
+    match /users/{userId} {
+      // Any authenticated user can read basic user info, but owners can write. Admins can read all.
+      allow read: if isAuthenticated();
+      // Only the user themselves can update their profile (or admins)
+      allow write: if isOwner(userId) || isAdmin();
+    }
+    
+    // ---------------------------------------------------------
+    // STRICT MEDICAL DATA ISOLATION (OWNER ONLY)
+    // ---------------------------------------------------------
+    
+    match /users/{userId}/medicalProfile/{docId} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    match /users/{userId}/medications/{medId} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    match /users/{userId}/emergencyContacts/{contactId} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    match /users/{userId}/medicalDocuments/{docId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // ---------------------------------------------------------
+    // DONORS
+    // ---------------------------------------------------------
+    
+    match /donors/{userId} {
+      // System reads for matching (handled via Cloud Functions mostly)
+      // Any verified hospital or admin can search donors, user can update own donor status
+      allow read: if isOwner(userId) || isHospitalStaff() || isAdmin();
+      allow write: if isOwner(userId);
+    }
+
+    // ---------------------------------------------------------
+    // HOSPITALS
+    // ---------------------------------------------------------
+    
+    match /hospitals/{hospitalId} {
+      // Public can read verified hospitals
+      allow read: if (resource == null) || resource.data.status == 'verified' || isAdmin() || isHospitalStaff();
+      // Anyone can register a hospital, admins verify it
+      allow create: if isAuthenticated();
+      allow update, delete: if isAdmin() || (isHospitalStaff() && resource.data.createdBy == request.auth.uid);
+    }
+
+    // ---------------------------------------------------------
+    // BLOOD REQUESTS
+    // ---------------------------------------------------------
+    
+    match /bloodRequests/{requestId} {
+      // Anyone authenticated can view blood requests
+      allow read: if isAuthenticated();
+      // Only verified hospital staff can create/update requests
+      allow create: if isHospitalStaff() && isVerifiedHospital(request.resource.data.hospitalId);
+      allow update: if (isHospitalStaff() && resource.data.createdBy == request.auth.uid) || isAdmin();
+      allow delete: if isAdmin();
+      
+      match /donorResponses/{responseId} {
+        // Authenticated users can view their responses and hospital can view all
+        allow read: if isAuthenticated();
+        // Any user can respond
+        allow create: if isAuthenticated() && request.resource.data.donorId == request.auth.uid;
+        allow update: if isAuthenticated() && resource.data.donorId == request.auth.uid || isHospitalStaff();
+      }
+    }
+
+    // ---------------------------------------------------------
+    // EMERGENCY TOKENS & LOGS
+    // ---------------------------------------------------------
+    
+    match /emergencyTokens/{tokenId} {
+      // Token is required to read it, so it's conceptually public if you have the ID
+      allow read: if true;
+      allow write: if isOwner(request.resource.data.userId);
+    }
+    
+    match /emergencyAccessLogs/{logId} {
+      allow read: if isOwner(resource.data.userId);
+      allow create: if true; // Anyone scanning the QR can generate a log
+      allow update, delete: if false; // Immutable logs
+    }
+
+    // ---------------------------------------------------------
+    // NOTIFICATIONS & ADMIN
+    // ---------------------------------------------------------
+    
+    match /fcmTokens/{tokenId} {
+      allow read, write: if isOwner(request.resource.data.userId);
+    }
+    
+    match /adminConfig/{docId} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

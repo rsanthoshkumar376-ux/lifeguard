@@ -1,0 +1,162 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-emergency: #DC2626;
+    --color-medical: #2563EB;
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply min-h-screen;
+    padding-bottom: var(--safe-area-bottom);
+  }
+
+  /* Ensure inputs aren't zoomed on mobile */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+@layer components {
+  /* Emergency action button - large, high contrast, easy to tap under stress */
+  .btn-emergency {
+    @apply w-full py-4 px-6 rounded-2xl font-bold text-lg text-white
+           bg-emergency-600 hover:bg-emergency-700 active:bg-emergency-800
+           shadow-lg shadow-emergency-200 dark:shadow-emergency-900/30
+           transition-all duration-150 ease-in-out
+           flex items-center justify-center gap-3
+           min-h-touch select-none;
+  }
+
+  .btn-emergency:active {
+    transform: scale(0.97);
+  }
+
+  /* Primary action button */
+  .btn-primary {
+    @apply w-full py-3.5 px-6 rounded-xl font-semibold text-base text-white
+           bg-medical-600 hover:bg-medical-700 active:bg-medical-800
+           shadow-md transition-all duration-150
+           flex items-center justify-center gap-2
+           min-h-touch select-none;
+  }
+
+  .btn-primary:active {
+    transform: scale(0.98);
+  }
+
+  /* Secondary / outline button */
+  .btn-secondary {
+    @apply w-full py-3.5 px-6 rounded-xl font-semibold text-base
+           text-medical-700 dark:text-medical-300
+           bg-medical-50 dark:bg-medical-900/30
+           hover:bg-medical-100 dark:hover:bg-medical-900/50
+           border border-medical-200 dark:border-medical-800
+           transition-all duration-150
+           flex items-center justify-center gap-2
+           min-h-touch select-none;
+  }
+
+  /* Ghost / text button */
+  .btn-ghost {
+    @apply py-3 px-4 rounded-xl font-medium text-sm
+           text-gray-600 dark:text-gray-400
+           hover:bg-gray-100 dark:hover:bg-gray-800
+           transition-all duration-150
+           flex items-center justify-center gap-2
+           min-h-touch select-none;
+  }
+
+  /* Success (I CAN DONATE) button */
+  .btn-success {
+    @apply w-full py-4 px-6 rounded-2xl font-bold text-lg text-white
+           bg-success-600 hover:bg-success-700 active:bg-green-800
+           shadow-lg shadow-success-50 
+           transition-all duration-150
+           flex items-center justify-center gap-3
+           min-h-touch select-none;
+  }
+
+  /* Warning / unavailable button */
+  .btn-warning {
+    @apply w-full py-3.5 px-6 rounded-xl font-semibold text-base
+           text-warning-600 dark:text-warning-500
+           bg-warning-50 dark:bg-yellow-900/20
+           border border-warning-500/30
+           transition-all duration-150
+           flex items-center justify-center gap-2
+           min-h-touch select-none;
+  }
+
+  /* Card component */
+  .card {
+    @apply bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800
+           shadow-sm p-4;
+  }
+
+  /* Input field */
+  .input-field {
+    @apply w-full px-4 py-3.5 rounded-xl text-base
+           bg-gray-50 dark:bg-gray-800
+           border border-gray-200 dark:border-gray-700
+           focus:ring-2 focus:ring-medical-500 focus:border-transparent
+           outline-none transition-all duration-150
+           placeholder:text-gray-400 dark:placeholder:text-gray-500;
+  }
+
+  /* Section header */
+  .section-header {
+    @apply text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 px-1;
+  }
+
+  /* Badge */
+  .badge-critical {
+    @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold
+           bg-emergency-100 dark:bg-emergency-900/30 text-emergency-700 dark:text-emergency-400;
+  }
+
+  .badge-urgent {
+    @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold
+           bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400;
+  }
+
+  .badge-normal {
+    @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold
+           bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400;
+  }
+
+  /* Toggle switch */
+  .toggle-track {
+    @apply relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full
+           border-2 border-transparent transition-colors duration-200 ease-in-out
+           focus:outline-none focus:ring-2 focus:ring-medical-500 focus:ring-offset-2;
+  }
+
+  .toggle-thumb {
+    @apply pointer-events-none inline-block h-6 w-6 transform rounded-full
+           bg-white shadow-lg ring-0 transition duration-200 ease-in-out;
+  }
+
+  /* Page container with bottom nav spacing */
+  .page-container {
+    @apply min-h-screen pb-24 pt-safe-top;
+  }
+
+  /* Urgency pulse animation for critical requests */
+  .pulse-emergency {
+    animation: emergencyPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes emergencyPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+    50% { box-shadow: 0 0 0 12px rgba(220, 38, 38, 0); }
+  }
+}
