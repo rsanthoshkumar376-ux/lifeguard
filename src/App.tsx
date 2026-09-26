@@ -1,8 +1,7 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
-
-// We would normally import context here, but using placeholder functions for auth
-const useAuth = () => ({ isAuthenticated: true, role: 'admin' as string, isLoading: false });
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { useAuth } from './contexts/AuthContext';
+import AppLayout from './components/layout/AppLayout';
 
 // Lazy load pages
 const Home = React.lazy(() => import('./pages/Home'));
@@ -32,21 +31,27 @@ const RequestMonitoringPage = React.lazy(() => import('./pages/admin/RequestMoni
 
 // Route Protectors
 const ProtectedRoute = () => {
-  const { isAuthenticated, isLoading } = useAuth();
-  if (isLoading) return <div className="p-4 text-center">Loading...</div>;
-  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
+  const { isAuthenticated, loading } = useAuth();
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+  return isAuthenticated ? <AppLayout /> : <Navigate to="/login" replace />;
 };
 
 const AdminRoute = () => {
-  const { isAuthenticated, role, isLoading } = useAuth();
-  if (isLoading) return <div className="p-4 text-center">Loading...</div>;
-  return isAuthenticated && role === 'admin' ? <Outlet /> : <Navigate to="/" replace />;
+  const { isAuthenticated, user, loading } = useAuth();
+  if (loading) return null;
+  return isAuthenticated && user?.role === 'admin' ? <Outlet /> : <Navigate to="/" replace />;
 };
 
 const HospitalRoute = () => {
-  const { isAuthenticated, role, isLoading } = useAuth();
-  if (isLoading) return <div className="p-4 text-center">Loading...</div>;
-  return isAuthenticated && (role === 'hospital_staff' || role === 'admin') ? <Outlet /> : <Navigate to="/" replace />;
+  const { isAuthenticated, user, loading } = useAuth();
+  if (loading) return null;
+  return isAuthenticated && (user?.role === 'hospital_staff' || user?.role === 'admin') ? <Outlet /> : <Navigate to="/" replace />;
 };
 
 const NotFound = () => (
@@ -59,14 +64,20 @@ const NotFound = () => (
 
 const App: React.FC = () => {
   return (
-    <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div></div>}>
+    <React.Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      }
+    >
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/emergency/view" element={<EmergencyViewPage />} />
         
-        {/* Protected User Routes */}
+        {/* Protected User Routes wrapped with AppLayout (BottomNav) */}
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<Home />} />
           <Route path="/emergency/id" element={<EmergencyIdPage />} />

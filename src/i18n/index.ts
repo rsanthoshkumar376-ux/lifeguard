@@ -1,25 +1,29 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
-import HttpApi from 'i18next-http-backend';
+
+import en from '../../public/locales/en/translation.json';
+import ta from '../../public/locales/ta/translation.json';
+import hi from '../../public/locales/hi/translation.json';
 
 i18n
-  .use(HttpApi)
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
+    resources: {
+      en: { translation: en },
+      ta: { translation: ta },
+      hi: { translation: hi },
+    },
     fallbackLng: 'en',
     supportedLngs: ['en', 'hi', 'ta'],
-    debug: process.env.NODE_ENV === 'development',
+    debug: false,
     interpolation: {
       escapeValue: false,
     },
-    backend: {
-      loadPath: '/locales/{{lng}}/{{ns}}.json',
-    },
     detection: {
-      order: ['localStorage', 'cookie', 'navigator', 'htmlTag', 'path', 'subdomain'],
-      caches: ['localStorage', 'cookie'],
+      order: ['localStorage', 'navigator'],
+      caches: ['localStorage'],
     },
   });
 

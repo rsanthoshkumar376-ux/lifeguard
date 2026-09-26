@@ -28,3 +28,6 @@ yarn-error.log*
 *.sln
 *.sw?
 .DS_Store
+
+.env
+.env.local
