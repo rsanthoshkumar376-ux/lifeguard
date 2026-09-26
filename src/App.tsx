@@ -76,6 +76,8 @@ const App: React.FC = () => {
           <Route path="/blood/requests" element={<BloodRequestsPage />} />
           <Route path="/blood-requests" element={<BloodRequestsPage />} />
           <Route path="/blood/requests/:id" element={<BloodRequestDetailPage />} />
+          <Route path="/blood-requests/:id" element={<BloodRequestDetailPage />} />
+          <Route path="/blood/:id" element={<BloodRequestDetailPage />} />
           
           {/* Donor aliases */}
           <Route path="/blood/donor-profile" element={<DonorProfilePage />} />
