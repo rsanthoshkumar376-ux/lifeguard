@@ -1,6 +1,5 @@
 import React from 'react';
-import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from './contexts/AuthContext';
+import { Routes, Route } from 'react-router-dom';
 import AppLayout from './components/layout/AppLayout';
 
 // Lazy load pages
@@ -29,31 +28,6 @@ const HospitalVerificationPage = React.lazy(() => import('./pages/admin/Hospital
 const UserManagementPage = React.lazy(() => import('./pages/admin/UserManagementPage'));
 const RequestMonitoringPage = React.lazy(() => import('./pages/admin/RequestMonitoringPage'));
 
-// Route Protectors
-const ProtectedRoute = () => {
-  const { isAuthenticated, loading } = useAuth();
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-  return isAuthenticated ? <AppLayout /> : <Navigate to="/login" replace />;
-};
-
-const AdminRoute = () => {
-  const { isAuthenticated, user, loading } = useAuth();
-  if (loading) return null;
-  return isAuthenticated && user?.role === 'admin' ? <Outlet /> : <Navigate to="/" replace />;
-};
-
-const HospitalRoute = () => {
-  const { isAuthenticated, user, loading } = useAuth();
-  if (loading) return null;
-  return isAuthenticated && (user?.role === 'hospital_staff' || user?.role === 'admin') ? <Outlet /> : <Navigate to="/" replace />;
-};
-
 const NotFound = () => (
   <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
     <h1 className="text-4xl font-bold text-gray-800 mb-2">404</h1>
@@ -66,19 +40,17 @@ const App: React.FC = () => {
   return (
     <React.Suspense
       fallback={
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="flex items-center justify-center min-h-screen bg-gray-50">
+          <div className="text-center">
+            <div className="w-10 h-10 border-4 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+            <p className="text-xs font-semibold text-gray-500">Loading LifeGuard...</p>
+          </div>
         </div>
       }
     >
       <Routes>
-        {/* Public Routes */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/emergency/view" element={<EmergencyViewPage />} />
-        
-        {/* Protected User Routes wrapped with AppLayout (BottomNav) */}
-        <Route element={<ProtectedRoute />}>
+        {/* Main App Layout with BottomNav */}
+        <Route element={<AppLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/emergency/id" element={<EmergencyIdPage />} />
           <Route path="/emergency/sos" element={<SosPage />} />
@@ -92,22 +64,19 @@ const App: React.FC = () => {
           <Route path="/activity" element={<ActivityPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/hospital/register" element={<HospitalRegisterPage />} />
-        </Route>
-
-        {/* Hospital Staff Routes */}
-        <Route element={<HospitalRoute />}>
           <Route path="/hospital/dashboard" element={<HospitalDashboard />} />
           <Route path="/hospital/create-request" element={<CreateRequestPage />} />
-        </Route>
-
-        {/* Admin Routes */}
-        <Route element={<AdminRoute />}>
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/hospitals" element={<HospitalVerificationPage />} />
           <Route path="/admin/users" element={<UserManagementPage />} />
           <Route path="/admin/requests" element={<RequestMonitoringPage />} />
         </Route>
 
+        {/* Auth & Standalone Pages */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/emergency/view" element={<EmergencyViewPage />} />
+        
         {/* 404 */}
         <Route path="*" element={<NotFound />} />
       </Routes>

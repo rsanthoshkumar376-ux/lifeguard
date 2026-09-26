@@ -94,7 +94,9 @@ export interface User {
   email: string;
   phone: string;
   displayName: string;
+  fullName?: string;
   photoURL: string | null;
+  profilePhotoUrl?: string;
   role: UserRole;
   medicalProfile: MedicalProfile;
   donorProfile: DonorProfile;

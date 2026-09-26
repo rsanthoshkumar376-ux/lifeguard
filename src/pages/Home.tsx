@@ -1,11 +1,11 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Bell, HeartPulse, Droplet, Users, Hospital, Droplets, Activity, Settings, PhoneCall } from 'lucide-react';
+import { Bell, HeartPulse, Droplet, Users, Hospital, Droplets, Activity, Settings, PhoneCall, LogIn } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 const Home: React.FC = () => {
-  const { user } = useAuth() as any;
+  const { user } = useAuth();
   const { t } = useTranslation();
 
   return (
@@ -13,73 +13,85 @@ const Home: React.FC = () => {
       {/* Header */}
       <header className="bg-white shadow-sm p-4 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden">
-             {user?.photoURL ? <img src={user.photoURL} alt="Profile" /> : <span className="text-blue-600 font-bold">{user?.displayName?.charAt(0) || 'U'}</span>}
+          <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center overflow-hidden">
+             {user?.profilePhotoUrl ? (
+               <img src={user.profilePhotoUrl} alt="Profile" className="w-full h-full object-cover" />
+             ) : (
+               <span className="text-red-600 font-bold">{user?.fullName?.charAt(0) || 'L'}</span>
+             )}
           </div>
           <div>
-            <p className="text-sm text-gray-500">Hello,</p>
-            <p className="font-bold text-gray-900">{user?.displayName || 'User'}</p>
+            <p className="text-xs text-gray-500">Welcome to LifeGuard</p>
+            <p className="font-bold text-gray-900 text-sm">{user?.fullName || 'Emergency Guest'}</p>
           </div>
         </div>
-        <div className="flex space-x-2">
-          <button className="p-2 text-gray-600 bg-gray-100 rounded-full hover:bg-gray-200">
-             <Bell size={20} />
-          </button>
+        <div className="flex items-center space-x-2">
+          {!user ? (
+            <Link to="/login" className="px-3 py-1.5 bg-red-600 text-white rounded-lg text-xs font-bold flex items-center shadow">
+              <LogIn size={14} className="mr-1" /> Login
+            </Link>
+          ) : (
+            <Link to="/settings" className="p-2 text-gray-600 bg-gray-100 rounded-full hover:bg-gray-200">
+               <Bell size={18} />
+            </Link>
+          )}
         </div>
       </header>
 
       {/* Emergency Banner */}
       <div className="bg-red-600 text-white p-3 flex items-center justify-between animate-pulse">
-         <span className="font-bold">CRITICAL: O- Blood needed nearby!</span>
-         <Link to="/blood-requests" className="bg-white text-red-600 px-3 py-1 rounded-full text-sm font-bold shadow">View</Link>
+         <span className="font-bold text-xs sm:text-sm">CRITICAL: O+ Blood needed nearby!</span>
+         <Link to="/blood/requests" className="bg-white text-red-600 px-3 py-1 rounded-full text-xs font-bold shadow">
+           View
+         </Link>
       </div>
 
       <div className="p-4 space-y-4">
         {/* Main Action Grid */}
         <div className="grid grid-cols-2 gap-4">
-          <button className="col-span-2 bg-red-600 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow-lg active:scale-95 transition-transform">
-             <PhoneCall size={32} className="mb-1" />
+          <Link to="/emergency/sos" className="col-span-2 bg-red-600 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow-lg active:scale-95 transition-transform">
+             <PhoneCall size={32} className="mb-1 animate-bounce" />
              <span className="font-bold text-lg">SOS Emergency</span>
-          </button>
+          </Link>
           
-          <Link to="/blood-requests/create" className="bg-orange-500 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
+          <Link to="/hospital/create-request" className="bg-orange-500 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
              <Droplet size={28} className="mb-1" />
-             <span className="font-bold">Need Blood</span>
+             <span className="font-bold text-sm">Need Blood</span>
           </Link>
           
-          <Link to="/medical-id" className="bg-blue-500 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
+          <Link to="/emergency/id" className="bg-blue-500 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
              <HeartPulse size={28} className="mb-1" />
-             <span className="font-bold">Emergency ID</span>
+             <span className="font-bold text-sm">Emergency ID</span>
           </Link>
           
-          <Link to="/qr-id" className="bg-purple-500 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
+          <Link to="/qr" className="bg-purple-500 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
              <span className="text-2xl mb-1">📱</span>
-             <span className="font-bold">My QR ID</span>
+             <span className="font-bold text-sm">My QR ID</span>
           </Link>
           
-          <Link to="/profile" className="bg-teal-500 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
+          <Link to="/medical-profile" className="bg-teal-500 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
              <Users size={28} className="mb-1" />
-             <span className="font-bold">Medical Profile</span>
+             <span className="font-bold text-sm">Medical Profile</span>
           </Link>
 
-          <Link to="/hospitals" className="bg-green-500 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
+          <Link to="/nearby-hospitals" className="bg-green-500 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
              <Hospital size={28} className="mb-1" />
-             <span className="font-bold">Nearby Hospitals</span>
+             <span className="font-bold text-sm">Nearby Hospitals</span>
           </Link>
           
-          <Link to="/blood-donor" className="bg-pink-600 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
+          <Link to="/blood/donor-profile" className="bg-pink-600 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
              <Droplets size={28} className="mb-1" />
-             <span className="font-bold">Blood Donation</span>
+             <span className="font-bold text-sm">Blood Donation</span>
           </Link>
 
-          <Link to="/activity" className="bg-gray-600 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
+          <Link to="/activity" className="bg-slate-600 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
              <Activity size={28} className="mb-1" />
-             <span className="font-bold">My Activity</span>
+             <span className="font-bold text-sm">My Activity</span>
           </Link>
           
-          <Link to="/settings" className="bg-gray-700 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
+          <Link to="/settings" className="bg-slate-700 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
              <Settings size={28} className="mb-1" />
-             <span className="font-bold">Settings</span>
+             <span className="font-bold text-sm">Settings</span>
           </Link>
         </div>
 
