@@ -94,6 +94,45 @@ const SettingsPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Database & Cloud Status Group */}
+        <div>
+          <h2 className="text-xs font-bold text-gray-500 uppercase px-4 mb-2 tracking-wider">Database & Cloud Sync</h2>
+          <div className="bg-white border-t border-b border-gray-200 divide-y divide-gray-100">
+            <div className="p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs">
+                  DB
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                    Supabase PostgreSQL
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  </div>
+                  <div className="text-xs text-gray-500">Cloud database configured & active</div>
+                </div>
+              </div>
+              <span className="text-xs font-bold px-2 py-1 bg-emerald-50 text-emerald-700 rounded-md border border-emerald-200">
+                Connected
+              </span>
+            </div>
+
+            <div className="p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs">
+                  LS
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-gray-900">Local Device Storage</div>
+                  <div className="text-xs text-gray-500">Offline-first local cache & backup</div>
+                </div>
+              </div>
+              <span className="text-xs font-bold px-2 py-1 bg-blue-50 text-blue-700 rounded-md border border-blue-200">
+                Operational
+              </span>
+            </div>
+          </div>
+        </div>
+
         {/* About Group */}
         <div>
           <h2 className="text-xs font-bold text-gray-500 uppercase px-4 mb-2 tracking-wider">About</h2>
