@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getMedicalProfile, saveMedicalProfile, MedicalProfile } from '../../services/medicalProfile';
-import { Save, AlertCircle, Check } from 'lucide-react';
+import { Save, AlertCircle, Check, Sparkles } from 'lucide-react';
+import AiReportModal from '../../components/medical/AiReportModal';
 
 const MedicalProfilePage = () => {
   const { user } = useAuth();
   const [profile, setProfile] = useState<MedicalProfile>({});
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState('');
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -98,6 +100,24 @@ const MedicalProfilePage = () => {
         </div>
       )}
 
+            {/* AI Report Auto-fill Banner */}
+      <div className="mb-4 bg-gradient-to-r from-blue-700 to-indigo-800 text-white p-4 rounded-2xl shadow-md flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+            <Sparkles size={20} className="text-yellow-300" />
+          </div>
+          <div>
+            <p className="font-black text-sm">Auto-Fill Profile with AI Report</p>
+            <p className="text-xs text-blue-100">Upload your PDF or JPG lab test to detect blood group & conditions</p>
+          </div>
+        </div>
+        <button
+          onClick={() => setIsAiModalOpen(true)}
+          className="bg-white text-blue-900 px-3.5 py-2 rounded-xl text-xs font-black shadow hover:bg-blue-50 active:scale-95 transition-transform shrink-0 ml-3"
+        >
+          Scan Report
+        </button>
+      </div>
       {/* Personal Info */}
       <section className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-4 space-y-4">
         <h2 className="text-lg font-bold text-gray-800 border-b pb-2">Personal Information</h2>
@@ -199,6 +219,7 @@ const MedicalProfilePage = () => {
       >
         <Save size={20} /> Save Medical Profile
       </button>
+      <AiReportModal isOpen={isAiModalOpen} onClose={() => setIsAiModalOpen(false)} onProfileUpdated={(updated) => { setProfile(prev => ({ ...prev, ...updated })); setToast("Profile updated from AI Report!"); }} />
     </div>
   );
 };

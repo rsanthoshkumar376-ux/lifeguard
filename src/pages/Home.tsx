@@ -3,6 +3,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { Bell, HeartPulse, Droplet, Users, Hospital, Droplets, Activity, Settings, PhoneCall, LogIn, Download, Smartphone, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import AiReportModal from '../components/medical/AiReportModal';
+import { Sparkles } from 'lucide-react';
 
 const Home: React.FC = () => {
   const { user } = useAuth();
@@ -11,6 +13,7 @@ const Home: React.FC = () => {
   const [isInstalled, setIsInstalled] = useState(false);
   const [showInstallGuide, setShowInstallGuide] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
 
   useEffect(() => {
     // Check if running in standalone mode (already installed)
@@ -141,6 +144,24 @@ const Home: React.FC = () => {
       <div className="p-4 space-y-4">
         {/* Main Action Grid */}
         <div className="grid grid-cols-2 gap-4">
+          {/* AI Medical Report Scanner Card */}
+          <button 
+            onClick={() => setIsAiModalOpen(true)}
+            className="col-span-2 bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800 text-white p-4 rounded-2xl flex items-center justify-between shadow-lg active:scale-95 transition-all border border-blue-500/30"
+          >
+            <div className="flex items-center space-x-3.5 text-left">
+              <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center shrink-0 backdrop-blur">
+                <Sparkles size={24} className="text-yellow-300 animate-pulse" />
+              </div>
+              <div>
+                <p className="font-black text-sm sm:text-base leading-tight">AI Medical Report Scanner</p>
+                <p className="text-xs text-blue-100 mt-0.5">Upload PDF or JPG report to diagnose complete body health</p>
+              </div>
+            </div>
+            <span className="bg-white text-blue-900 px-3.5 py-1.5 rounded-xl text-xs font-black shadow shrink-0 ml-2">
+              Scan
+            </span>
+          </button>
           <Link to="/emergency/sos" className="col-span-2 bg-gradient-to-r from-red-600 to-red-700 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow-lg active:scale-95 transition-transform">
              <PhoneCall size={32} className="mb-1 animate-bounce" />
              <span className="font-black text-lg tracking-wide">SOS EMERGENCY</span>
@@ -199,6 +220,9 @@ const Home: React.FC = () => {
             </div>
         </div>
       </div>
+
+      {/* AI Report Scanner Modal */}
+      <AiReportModal isOpen={isAiModalOpen} onClose={() => setIsAiModalOpen(false)} />
     </div>
   );
 };
