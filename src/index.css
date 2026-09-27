@@ -19,9 +19,15 @@
     padding-bottom: var(--safe-area-bottom);
   }
 
-  /* Ensure inputs aren't zoomed on mobile */
+  /* Ensure inputs aren't zoomed on mobile and words/text typed are always sharp, high-contrast, and clearly visible */
   input, select, textarea {
     font-size: 16px !important;
+    color: #111827 !important;
+  }
+
+  input::placeholder, textarea::placeholder {
+    color: #6B7280 !important;
+    opacity: 1 !important;
   }
 }
 

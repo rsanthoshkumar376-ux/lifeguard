@@ -105,7 +105,7 @@ const LoginPage: React.FC = () => {
                   id="phone"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                  className="flex-1 min-w-0 block w-full px-4 py-3 rounded-none rounded-r-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 sm:text-lg"
+                  className="flex-1 min-w-0 block w-full px-4 py-3 bg-white text-gray-900 font-medium placeholder:text-gray-400 rounded-none rounded-r-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 sm:text-lg"
                   placeholder="Enter 10-digit number"
                   maxLength={10}
                 />

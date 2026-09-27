@@ -128,7 +128,7 @@ const CreateRequestPage: React.FC = () => {
                value={patientRef}
                onChange={(e) => setPatientRef(e.target.value)}
                placeholder="e.g. PAT-12345" 
-               className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" 
+               className="w-full bg-white text-gray-900 font-medium placeholder:text-gray-400 border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" 
              />
              <p className="text-xs text-gray-500 mt-1">Do NOT enter real patient names for privacy.</p>
            </div>
@@ -140,7 +140,7 @@ const CreateRequestPage: React.FC = () => {
                value={department}
                onChange={(e) => setDepartment(e.target.value)}
                placeholder="e.g. ICU, Maternity" 
-               className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" 
+               className="w-full bg-white text-gray-900 font-medium placeholder:text-gray-400 border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" 
              />
            </div>
 
@@ -151,7 +151,7 @@ const CreateRequestPage: React.FC = () => {
                value={message}
                onChange={(e) => setMessage(e.target.value)}
                placeholder="Any specific requirements..." 
-               className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+               className="w-full bg-white text-gray-900 font-medium placeholder:text-gray-400 border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
              />
            </div>
         </div>
