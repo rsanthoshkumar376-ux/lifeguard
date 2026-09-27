@@ -23,6 +23,7 @@ const ActivityPage = React.lazy(() => import('./pages/ActivityPage'));
 const NotificationsPage = React.lazy(() => import('./pages/NotificationsPage'));
 const SettingsPage = React.lazy(() => import('./pages/profile/SettingsPage'));
 const AiChatPage = React.lazy(() => import('./pages/ai/AiChatPage'));
+const ResetAppPage = React.lazy(() => import('./pages/ResetAppPage'));
 
 // Admin pages
 const AdminDashboard = React.lazy(() => import('./pages/admin/AdminDashboard'));
@@ -101,6 +102,8 @@ const App: React.FC = () => {
           <Route path="/ai-chat" element={<AiChatPage />} />
           <Route path="/assistant" element={<AiChatPage />} />
           <Route path="/ai" element={<AiChatPage />} />
+          <Route path="/reset" element={<ResetAppPage />} />
+          <Route path="/reset-app" element={<ResetAppPage />} />
           
           {/* Hospital Staff */}
           <Route path="/hospital/dashboard" element={<HospitalDashboard />} />

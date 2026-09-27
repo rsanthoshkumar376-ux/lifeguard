@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, User, Shield, Globe, Moon, Sun, Info, Trash2, LogOut, ChevronRight, Check } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { ArrowLeft, User, Shield, Globe, Moon, Sun, Info, Trash2, LogOut, ChevronRight, Check, RotateCcw } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { performFullAppReset } from '../../utils/resetApp';
 import LanguageModal, { LANGUAGES } from '../../components/common/LanguageModal';
 
 const SettingsPage: React.FC = () => {
@@ -112,8 +113,25 @@ const SettingsPage: React.FC = () => {
              <div onClick={logout} className="flex items-center justify-center p-4 bg-white border-b border-gray-100 active:bg-gray-50 cursor-pointer text-blue-600 font-bold text-sm">
                 <LogOut size={18} className="mr-2" /> Log Out
              </div>
-             <div className="flex items-center justify-center p-4 bg-white active:bg-red-50 cursor-pointer text-red-600 font-bold text-sm">
-                <Trash2 size={18} className="mr-2" /> Delete Account
+             <div 
+               onClick={() => {
+                 if (window.confirm('Reset entire app to factory state? This will clear all local test requests, donations, medical profiles, and chat logs.')) {
+                   performFullAppReset();
+                 }
+               }} 
+               className="flex items-center justify-center p-4 bg-white border-b border-gray-100 active:bg-amber-50 cursor-pointer text-amber-600 font-bold text-sm"
+             >
+                <RotateCcw size={18} className="mr-2" /> Reset App to Factory State
+             </div>
+             <div 
+               onClick={() => {
+                 if (window.confirm('Are you sure you want to delete your account and clear all local data?')) {
+                   performFullAppReset();
+                 }
+               }} 
+               className="flex items-center justify-center p-4 bg-white active:bg-red-50 cursor-pointer text-red-600 font-bold text-sm"
+             >
+                <Trash2 size={18} className="mr-2" /> Delete Account & Erase Data
              </div>
           </div>
         </div>
