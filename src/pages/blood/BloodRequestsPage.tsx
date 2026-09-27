@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Filter, Droplet, Clock, MapPin, Search, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { apiRequest } from '../../config/api';
+import { getActiveRequests } from '../../services/bloodRequest';
 
 const BloodRequestsPage: React.FC = () => {
   const [filter, setFilter] = useState('All');
@@ -15,14 +15,8 @@ const BloodRequestsPage: React.FC = () => {
   const loadRequests = async () => {
     try {
       setLoading(true);
-      const data = await apiRequest('/blood/requests');
-      if (Array.isArray(data)) {
-        setRequests(data);
-      } else if (data && Array.isArray(data.requests)) {
-        setRequests(data.requests);
-      } else {
-        setRequests([]);
-      }
+      const data = await getActiveRequests();
+      setRequests(data || []);
     } catch (err) {
       console.error('Error fetching blood requests:', err);
       setRequests([]);

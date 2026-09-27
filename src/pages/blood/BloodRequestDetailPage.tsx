@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { MapPin, Phone, AlertTriangle, Clock, ArrowLeft, Heart, CheckCircle2, Droplet } from 'lucide-react';
-import { respondToRequest } from '../../services/bloodRequest';
-import { apiRequest } from '../../config/api';
+import { respondToRequest, getRequestById } from '../../services/bloodRequest';
 
 const BloodRequestDetailPage: React.FC = () => {
   const { id } = useParams();
@@ -17,20 +16,11 @@ const BloodRequestDetailPage: React.FC = () => {
   }, [id]);
 
   const loadRequest = async () => {
+    if (!id) return;
     setLoadingReq(true);
     try {
-      const data = await apiRequest(`/blood/requests/${id}`);
-      if (data && data.request) {
-        setRequest(data.request);
-      } else if (data && data.id) {
-        setRequest(data);
-      } else {
-        // Try fetching all requests and finding match
-        const list = await apiRequest('/blood/requests');
-        const all = Array.isArray(list) ? list : (list.requests || []);
-        const found = all.find((r: any) => String(r.id) === String(id));
-        setRequest(found || null);
-      }
+      const data = await getRequestById(id);
+      setRequest(data || null);
     } catch (e) {
       console.error(e);
       setRequest(null);
