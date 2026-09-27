@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Bell, HeartPulse, Droplet, Users, Hospital, Droplets, Activity, Settings, PhoneCall, LogIn, Download, Smartphone, X, Globe, Sparkles } from 'lucide-react';
+import { Bell, HeartPulse, Droplet, Users, Hospital, Droplets, Activity, Settings, PhoneCall, LogIn, Download, Smartphone, X, Globe, Sparkles, Moon, Sun } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import { useTheme } from '../contexts/ThemeContext';
 import AiReportModal from '../components/medical/AiReportModal';
 import LanguageModal from '../components/common/LanguageModal';
 
 const Home: React.FC = () => {
   const { user } = useAuth();
+  const { theme, toggleTheme, isDark } = useTheme();
   const { t, i18n } = useTranslation();
   const [installPrompt, setInstallPrompt] = useState<any>(null);
   const [isInstalled, setIsInstalled] = useState(false);
@@ -62,6 +64,15 @@ const Home: React.FC = () => {
           </div>
         </div>
         <div className="flex items-center space-x-2">
+          {/* Dark / Light Mode Quick Toggle */}
+          <button 
+            onClick={toggleTheme}
+            className="p-2 text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 transition-all active:scale-95 flex items-center justify-center relative"
+            title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          >
+            {isDark ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-gray-700" />}
+          </button>
+
           {/* Language Selector Button */}
           <button 
             onClick={() => setIsLanguageModalOpen(true)}
