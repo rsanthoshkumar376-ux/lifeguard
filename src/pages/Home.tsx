@@ -61,13 +61,28 @@ const Home: React.FC = () => {
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          {!user ? (
-            <Link to="/login" className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold flex items-center shadow active:scale-95 transition-all">
+          {/* Notifications Bell */}
+          <Link 
+            to="/notifications" 
+            className="p-2 text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 relative transition-all active:scale-95"
+            title="Notifications & Alerts"
+          >
+            <Bell size={18} />
+            <span className="absolute top-1 right-1 w-2 h-2 bg-red-600 rounded-full ring-2 ring-white"></span>
+          </Link>
+
+          {/* Settings Gear */}
+          <Link 
+            to="/settings" 
+            className="p-2 text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 transition-all active:scale-95"
+            title="Settings"
+          >
+            <Settings size={18} />
+          </Link>
+
+          {!user && (
+            <Link to="/login" className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold flex items-center shadow active:scale-95 transition-all ml-1">
               <LogIn size={14} className="mr-1" /> Login
-            </Link>
-          ) : (
-            <Link to="/settings" className="p-2 text-gray-600 bg-gray-100 rounded-full hover:bg-gray-200">
-               <Bell size={18} />
             </Link>
           )}
         </div>

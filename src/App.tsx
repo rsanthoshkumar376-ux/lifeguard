@@ -20,6 +20,7 @@ const CreateRequestPage = React.lazy(() => import('./pages/hospital/CreateReques
 const HospitalRegisterPage = React.lazy(() => import('./pages/hospital/HospitalRegisterPage'));
 const NearbyHospitalsPage = React.lazy(() => import('./pages/NearbyHospitalsPage'));
 const ActivityPage = React.lazy(() => import('./pages/ActivityPage'));
+const NotificationsPage = React.lazy(() => import('./pages/NotificationsPage'));
 const SettingsPage = React.lazy(() => import('./pages/profile/SettingsPage'));
 
 // Admin pages
@@ -93,6 +94,8 @@ const App: React.FC = () => {
           
           {/* Common tabs */}
           <Route path="/activity" element={<ActivityPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
+          <Route path="/alerts" element={<NotificationsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           
           {/* Hospital Staff */}
