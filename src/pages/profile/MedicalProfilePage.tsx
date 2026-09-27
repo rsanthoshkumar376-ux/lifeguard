@@ -11,6 +11,10 @@ const MedicalProfilePage = () => {
   const [toast, setToast] = useState('');
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
 
+  const today = new Date();
+  const maxBirthDate18 = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate()).toISOString().split('T')[0];
+  const minBirthDate100 = new Date(today.getFullYear() - 100, today.getMonth(), today.getDate()).toISOString().split('T')[0];
+
   useEffect(() => {
     if (user) {
       loadProfile();
@@ -126,9 +130,14 @@ const MedicalProfilePage = () => {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Date of Birth</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-1 flex items-center justify-between">
+              <span>Date of Birth</span>
+              <span className="text-[11px] text-red-600 font-bold bg-red-50 px-1.5 py-0.5 rounded border border-red-200">18+ Only</span>
+            </label>
             <input 
               type="date" 
+              max={maxBirthDate18}
+              min={minBirthDate100}
               className="w-full bg-white text-gray-900 font-medium border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" 
               value={profile.dob || ''} 
               onChange={(e) => handleChange('dob', e.target.value)} 
