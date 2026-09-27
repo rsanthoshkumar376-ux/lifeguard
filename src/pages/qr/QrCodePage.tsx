@@ -25,14 +25,7 @@ const QrCodePage = () => {
         createdAt: new Date()
       };
       setTokens([demoToken]);
-      setLogs([
-        {
-          id: 'log-1',
-          accessType: 'QR Scan by First Responder',
-          location: 'Chennai Central, TN',
-          timestamp: Date.now() - 3600000
-        }
-      ]);
+      setLogs([]);
       setLoading(false);
     }
   }, [user]);

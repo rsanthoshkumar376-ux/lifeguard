@@ -12,12 +12,7 @@ interface BloodRequest {
   status: 'active' | 'flagged' | 'expired' | 'fulfilled';
 }
 
-const mockRequests: BloodRequest[] = [
-  { id: 'REQ-001', hospitalName: 'City General Hospital', bloodGroup: 'O-', urgency: 'critical', unitsRequired: 3, responses: 1, createdTime: '2 hours ago', status: 'active' },
-  { id: 'REQ-002', hospitalName: 'Metro Healthcare', bloodGroup: 'A+', urgency: 'high', unitsRequired: 2, responses: 4, createdTime: '5 hours ago', status: 'active' },
-  { id: 'REQ-003', hospitalName: 'Sunrise Clinic', bloodGroup: 'B-', urgency: 'normal', unitsRequired: 1, responses: 0, createdTime: '1 day ago', status: 'flagged' },
-  { id: 'REQ-004', hospitalName: 'Hope Medical', bloodGroup: 'AB+', urgency: 'critical', unitsRequired: 5, responses: 5, createdTime: '2 days ago', status: 'expired' },
-];
+const mockRequests: BloodRequest[] = [];
 
 const RequestMonitoringPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'active' | 'critical' | 'flagged' | 'expired'>('active');

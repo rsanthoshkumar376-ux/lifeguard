@@ -12,12 +12,7 @@ interface UserData {
   joinedDate: string;
 }
 
-const mockUsers: UserData[] = [
-  { id: '1', name: 'John Doe', phone: '+1 234 567 8900', email: 'john@example.com', bloodGroup: 'O+', role: 'user', status: 'active', joinedDate: '2023-01-15' },
-  { id: '2', name: 'Jane Smith', phone: '+1 234 567 8901', email: 'jane@example.com', bloodGroup: 'A-', role: 'admin', status: 'active', joinedDate: '2023-02-20' },
-  { id: '3', name: 'Mike Johnson', phone: '+1 234 567 8902', email: 'mike@hospital.com', bloodGroup: 'B+', role: 'hospital_staff', status: 'active', joinedDate: '2023-05-10' },
-  { id: '4', name: 'Sarah Wilson', phone: '+1 234 567 8903', email: 'sarah@example.com', bloodGroup: 'AB+', role: 'user', status: 'suspended', joinedDate: '2023-08-05' },
-];
+const mockUsers: UserData[] = [];
 
 const UserManagementPage: React.FC = () => {
   const [users, setUsers] = useState<UserData[]>(mockUsers);

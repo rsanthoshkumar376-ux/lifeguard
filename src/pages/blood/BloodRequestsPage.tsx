@@ -1,33 +1,68 @@
-import React, { useState } from 'react';
-import { Filter, Droplet, Clock, MapPin, Search } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Filter, Droplet, Clock, MapPin, Search, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-const mockRequests = [
-  { id: '1', group: 'O-', hospital: 'City General Hospital', distance: '1.2 km', units: 2, urgency: 'Critical', time: '10 mins ago' },
-  { id: '2', group: 'A+', hospital: 'Hope Medical Center', distance: '3.5 km', units: 1, urgency: 'Urgent', time: '1 hr ago' },
-  { id: '3', group: 'B+', hospital: 'St. Mary Clinic', distance: '5.0 km', units: 3, urgency: 'Normal', time: '3 hrs ago' },
-];
+import { apiRequest } from '../../config/api';
 
 const BloodRequestsPage: React.FC = () => {
   const [filter, setFilter] = useState('All');
+  const [requests, setRequests] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadRequests();
+  }, []);
+
+  const loadRequests = async () => {
+    try {
+      setLoading(true);
+      const data = await apiRequest('/blood/requests');
+      if (Array.isArray(data)) {
+        setRequests(data);
+      } else if (data && Array.isArray(data.requests)) {
+        setRequests(data.requests);
+      } else {
+        setRequests([]);
+      }
+    } catch (err) {
+      console.error('Error fetching blood requests:', err);
+      setRequests([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredRequests = requests.filter(req => {
+    if (filter === 'All') return true;
+    if (['Critical', 'Urgent', 'Normal'].includes(filter)) {
+      return req.urgency?.toLowerCase() === filter.toLowerCase();
+    }
+    return req.bloodGroup === filter || req.group === filter;
+  });
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      <div className="bg-white shadow-sm p-4 sticky top-0 z-10 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-900">Blood Requests</h1>
-        <button className="p-2 text-gray-600 bg-gray-100 rounded-full">
-          <Search size={20} />
-        </button>
+    <div className="min-h-screen bg-gray-50 pb-28 text-gray-900">
+      <div className="bg-white shadow-sm p-4 sticky top-0 z-10 flex items-center justify-between border-b border-gray-100">
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">Blood Requests</h1>
+          <p className="text-xs text-gray-500">Live emergency requests in your network</p>
+        </div>
+        <Link 
+          to="/hospital/create-request"
+          className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700 shadow"
+          title="Create Blood Request"
+        >
+          <Plus size={20} />
+        </Link>
       </div>
 
       {/* Filter Bar */}
       <div className="p-4 flex space-x-2 overflow-x-auto">
-        {['All', 'Critical', 'Urgent', 'Normal', 'O-', 'A+', 'B+'].map((f) => (
+        {['All', 'Critical', 'Urgent', 'Normal', 'O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'].map((f) => (
           <button 
             key={f}
             onClick={() => setFilter(f)}
-            className={`px-4 py-1.5 rounded-full whitespace-nowrap font-medium text-sm border ${
-              filter === f ? 'bg-red-600 text-white border-red-600' : 'bg-white text-gray-700 border-gray-300'
+            className={`px-4 py-1.5 rounded-full whitespace-nowrap font-medium text-xs border transition-colors ${
+              filter === f ? 'bg-red-600 text-white border-red-600 shadow-sm' : 'bg-white text-gray-700 border-gray-200'
             }`}
           >
             {f}
@@ -36,56 +71,67 @@ const BloodRequestsPage: React.FC = () => {
       </div>
 
       <div className="p-4 space-y-4">
-        {mockRequests.length === 0 ? (
-          <div className="text-center text-gray-500 py-10">
-            <Droplet size={48} className="mx-auto mb-2 text-gray-300" />
-            <p>No blood requests in your area.</p>
+        {loading ? (
+          <div className="text-center py-16">
+            <div className="w-10 h-10 border-4 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+            <p className="text-sm font-bold text-gray-600">Loading live requests...</p>
+          </div>
+        ) : filteredRequests.length === 0 ? (
+          <div className="bg-white rounded-3xl p-8 text-center shadow-sm border border-gray-100 space-y-4 max-w-md mx-auto my-6">
+            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-3xl flex items-center justify-center mx-auto">
+              <Droplet size={32} />
+            </div>
+            <div>
+              <h3 className="font-bold text-base text-gray-900">No Active Blood Requests</h3>
+              <p className="text-xs text-gray-500 mt-1">
+                There are currently no open emergency blood requests matching this filter.
+              </p>
+            </div>
+            <Link 
+              to="/hospital/create-request"
+              className="inline-block w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow active:scale-95 transition-all"
+            >
+              Post an Emergency Requirement
+            </Link>
           </div>
         ) : (
-          mockRequests.map((req) => (
+          filteredRequests.map((req) => (
             <div key={req.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
               <div className="flex justify-between items-start mb-3">
                 <div className="flex items-center space-x-3">
-                  <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-black text-2xl">
-                    {req.group}
+                  <div className="w-14 h-14 rounded-2xl bg-red-100 flex items-center justify-center text-red-600 font-black text-2xl border border-red-200">
+                    {req.bloodGroup || req.group}
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-900">{req.hospital}</h3>
-                    <div className="flex items-center text-sm text-gray-500 space-x-2 mt-1">
-                      <span className="flex items-center"><MapPin size={14} className="mr-1"/> {req.distance}</span>
+                    <h3 className="font-bold text-gray-900">{req.hospitalName || req.hospital || 'Hospital'}</h3>
+                    <div className="flex items-center text-xs text-gray-500 space-x-2 mt-1">
+                      <span className="flex items-center"><MapPin size={13} className="mr-1"/> {req.location?.city || req.distance || 'Nearby'}</span>
                       <span>•</span>
-                      <span>{req.units} Units</span>
+                      <span>{req.unitsRequested || req.units || 1} Units</span>
                     </div>
                   </div>
                 </div>
-                <span className={`px-2 py-1 rounded text-xs font-bold ${
-                  req.urgency === 'Critical' ? 'bg-red-100 text-red-600 animate-pulse' :
-                  req.urgency === 'Urgent' ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'
+                <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                  req.urgency === 'Critical' || req.urgency === 'critical' ? 'bg-red-100 text-red-700 animate-pulse' :
+                  req.urgency === 'Urgent' || req.urgency === 'urgent' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'
                 }`}>
                   {req.urgency}
                 </span>
               </div>
               
               <div className="flex items-center text-xs text-gray-400 mb-4">
-                <Clock size={12} className="mr-1" /> Posted {req.time}
+                <Clock size={12} className="mr-1" /> Needed within {req.urgency === 'Critical' ? '< 2 hours' : '24 hours'}
               </div>
 
               <div className="flex space-x-3">
-                <Link to={`/blood-requests/${req.id}`} className="flex-1 bg-red-600 text-white text-center py-2.5 rounded-xl font-bold active:scale-95 transition-transform">
+                <Link to={`/blood-requests/${req.id}`} className="flex-1 bg-red-600 text-white text-center py-2.5 rounded-xl font-bold active:scale-95 transition-transform text-xs shadow">
                   I CAN DONATE
                 </Link>
-                <button className="flex-1 bg-gray-100 text-gray-600 text-center py-2.5 rounded-xl font-bold active:scale-95 transition-transform">
-                  NOT AVAILABLE
-                </button>
               </div>
             </div>
           ))
         )}
       </div>
-
-      <button className="fixed bottom-24 right-4 w-12 h-12 bg-gray-900 text-white rounded-full flex items-center justify-center shadow-lg">
-        <Filter size={24} />
-      </button>
     </div>
   );
 };

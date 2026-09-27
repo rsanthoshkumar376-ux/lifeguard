@@ -1,51 +1,105 @@
-import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { MapPin, Phone, AlertTriangle, Clock, ArrowLeft, Heart, CheckCircle2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { MapPin, Phone, AlertTriangle, Clock, ArrowLeft, Heart, CheckCircle2, Droplet } from 'lucide-react';
 import { respondToRequest } from '../../services/bloodRequest';
+import { apiRequest } from '../../config/api';
 
 const BloodRequestDetailPage: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [request, setRequest] = useState<any | null>(null);
+  const [loadingReq, setLoadingReq] = useState(true);
   const [donated, setDonated] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  // Sample or live request data
-  const req = {
-    id: id || '1',
-    group: 'O+',
-    hospital: 'Apollo Emergency Center',
-    department: 'Trauma & Emergency ICU',
-    distance: '2.4 km',
-    unitsRequired: 2,
-    unitsFulfilled: 0,
-    urgency: 'Critical',
-    message: 'Urgent surgery required for accident victim. Immediate blood transfusion required.',
-    phone: '+919876543210',
-    address: 'Greams Road, Thousand Lights, Chennai',
-    postedTime: '15 mins ago',
-    expiryTime: '2 hours left',
-    responses: 3
+  useEffect(() => {
+    loadRequest();
+  }, [id]);
+
+  const loadRequest = async () => {
+    setLoadingReq(true);
+    try {
+      const data = await apiRequest(`/blood/requests/${id}`);
+      if (data && data.request) {
+        setRequest(data.request);
+      } else if (data && data.id) {
+        setRequest(data);
+      } else {
+        // Try fetching all requests and finding match
+        const list = await apiRequest('/blood/requests');
+        const all = Array.isArray(list) ? list : (list.requests || []);
+        const found = all.find((r: any) => String(r.id) === String(id));
+        setRequest(found || null);
+      }
+    } catch (e) {
+      console.error(e);
+      setRequest(null);
+    } finally {
+      setLoadingReq(false);
+    }
   };
 
   const handleDonate = async () => {
+    if (!request) return;
     try {
-      setLoading(true);
-      await respondToRequest(req.id, 'confirmed', 'Donor confirmed via mobile app');
+      setSubmitting(true);
+      await respondToRequest(request.id, 'confirmed', 'Donor confirmed via mobile app');
       setDonated(true);
       alert('Thank you! Your donation response has been confirmed. The hospital has been notified.');
     } catch (e: any) {
       setDonated(true);
       alert('Thank you! Your willingness to donate has been registered with the hospital.');
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
+  if (loadingReq) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="text-center p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
+          <div className="w-10 h-10 border-4 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+          <p className="text-sm font-bold text-gray-700">Loading Request Details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!request) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="bg-white shadow-sm p-4 sticky top-0 z-10 flex items-center border-b border-gray-100">
+          <button onClick={() => navigate(-1)} className="mr-4 text-gray-600 hover:text-gray-900">
+            <ArrowLeft size={24} />
+          </button>
+          <h1 className="text-xl font-bold text-gray-900">Request Details</h1>
+        </div>
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-sm border border-gray-100 space-y-4">
+            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-3xl flex items-center justify-center mx-auto">
+              <Droplet size={32} />
+            </div>
+            <h2 className="text-lg font-bold text-gray-900">Request Not Found</h2>
+            <p className="text-xs text-gray-500">
+              This emergency blood request may have already been fulfilled or expired.
+            </p>
+            <Link 
+              to="/blood" 
+              className="inline-block w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow active:scale-95 transition-all"
+            >
+              Browse Active Blood Requests
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col pb-28 text-gray-900">
       {/* Header */}
-      <div className="bg-white shadow-sm p-4 sticky top-0 z-10 flex items-center">
-        <button onClick={() => navigate(-1)} className="mr-4 text-gray-600">
+      <div className="bg-white shadow-sm p-4 sticky top-0 z-10 flex items-center border-b border-gray-100">
+        <button onClick={() => navigate(-1)} className="mr-4 text-gray-600 hover:text-gray-900">
           <ArrowLeft size={24} />
         </button>
         <h1 className="text-xl font-bold text-gray-900">Request Details</h1>
@@ -53,79 +107,72 @@ const BloodRequestDetailPage: React.FC = () => {
 
       <div className="bg-red-600 text-white p-6 flex flex-col items-center justify-center">
          <div className="w-24 h-24 rounded-full bg-white flex items-center justify-center text-red-600 font-black text-4xl mb-3 shadow-lg">
-           {req.group}
+           {request.bloodGroup || request.group}
          </div>
          <span className="bg-red-800 text-red-100 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider animate-pulse">
-           {req.urgency} REQUIREMENT
+           {request.urgency || 'URGENT'} REQUIREMENT
          </span>
       </div>
 
-      <div className="p-4 space-y-4 -mt-3 flex-1">
-        <div className="bg-white rounded-2xl shadow-sm p-5 border border-gray-100 relative">
-          <h2 className="text-xl font-bold text-gray-900 mb-1">{req.hospital}</h2>
-          <p className="text-gray-500 mb-4 text-sm">{req.department}</p>
-          
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div className="bg-gray-50 p-3 rounded-xl">
-               <p className="text-xs text-gray-500 mb-1">Units Needed</p>
-               <p className="text-xl font-bold text-red-600">{req.unitsRequired} Units</p>
+      <div className="p-4 space-y-4 flex-1">
+        {/* Main Details Card */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
+           <div>
+              <span className="text-xs font-bold text-gray-400 uppercase">Hospital</span>
+              <h2 className="text-xl font-bold text-gray-900 mt-0.5">{request.hospitalName || request.hospital || 'Hospital'}</h2>
+              <p className="text-sm text-gray-500">{request.department || 'Emergency Ward'}</p>
+           </div>
+
+           <div className="flex items-center text-sm text-gray-600 border-t pt-3">
+              <MapPin size={18} className="mr-2 text-red-600 shrink-0" />
+              <span>{request.address || request.city || 'Emergency Centre'}</span>
+           </div>
+
+           {request.message && (
+             <div className="bg-red-50 p-4 rounded-xl border border-red-100 text-sm text-red-900">
+                <span className="font-bold block mb-1">Requirement Notes:</span>
+                {request.message}
+             </div>
+           )}
+
+           <div className="grid grid-cols-2 gap-3 border-t pt-3">
+              <div className="bg-gray-50 p-3 rounded-xl">
+                 <span className="text-xs text-gray-400 font-bold block">UNITS NEEDED</span>
+                 <span className="text-lg font-black text-gray-900">{request.unitsRequested || request.units || 1} Units</span>
+              </div>
+              <div className="bg-gray-50 p-3 rounded-xl">
+                 <span className="text-xs text-gray-400 font-bold block">STATUS</span>
+                 <span className="text-lg font-black text-red-600 uppercase">{request.status || 'OPEN'}</span>
+              </div>
+           </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="space-y-3 pt-2">
+          {donated ? (
+            <div className="bg-green-100 text-green-800 p-4 rounded-2xl font-bold text-center flex items-center justify-center gap-2">
+              <CheckCircle2 size={24} className="text-green-600" />
+              <span>You have confirmed willingness to donate!</span>
             </div>
-            <div className="bg-gray-50 p-3 rounded-xl">
-               <p className="text-xs text-gray-500 mb-1">Distance</p>
-               <p className="text-xl font-bold text-gray-800">{req.distance}</p>
-            </div>
-          </div>
+          ) : (
+            <button 
+              onClick={handleDonate}
+              disabled={submitting}
+              className="w-full bg-red-600 hover:bg-red-700 active:scale-95 transition-all text-white py-4 rounded-2xl font-black text-base shadow-lg flex items-center justify-center gap-2"
+            >
+              <Heart size={20} />
+              {submitting ? 'Confirming...' : 'I CAN DONATE'}
+            </button>
+          )}
 
-          <div className="bg-red-50 p-3 rounded-xl border border-red-100 mb-4 text-sm text-red-800">
-            <strong>Message:</strong> {req.message}
-          </div>
-
-          <div className="flex items-center text-xs text-gray-500 justify-between border-t pt-3">
-             <span className="flex items-center"><Clock size={14} className="mr-1"/> Posted {req.postedTime}</span>
-             <span className="text-red-500 font-semibold">{req.expiryTime}</span>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
-           <h3 className="font-bold text-gray-900 mb-2 flex items-center text-sm">
-             <MapPin size={18} className="mr-2 text-gray-400"/> Hospital Location & Contact
-           </h3>
-           <p className="text-gray-600 text-sm mb-4">{req.address}</p>
-           
-           <a 
-             href={`tel:${req.phone}`} 
-             className="w-full flex items-center justify-center bg-blue-50 text-blue-600 py-3 rounded-xl font-bold text-sm active:scale-95 transition-transform"
-           >
-             <Phone size={18} className="mr-2" /> CALL HOSPITAL NOW
-           </a>
-        </div>
-
-        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex items-start">
-           <AlertTriangle size={20} className="text-yellow-600 mr-3 mt-0.5 shrink-0" />
-           <p className="text-xs text-yellow-800">
-             <strong>Safety Warning:</strong> Never pay unknown individuals for blood. Blood donation must always be carried out directly at verified medical facilities.
-           </p>
-        </div>
-
-        {/* Action Button - In scrollable flow, never cut off! */}
-        <div className="pt-2 pb-6">
-           <button 
-             onClick={handleDonate}
-             disabled={loading || donated}
-             className={`w-full py-4 rounded-xl font-bold flex items-center justify-center text-lg shadow-lg active:scale-95 transition-transform ${
-               donated ? 'bg-green-600 text-white' : 'bg-red-600 hover:bg-red-700 text-white'
-             }`}
-           >
-             {donated ? (
-               <>
-                 <CheckCircle2 size={22} className="mr-2" /> YOU ARE CONFIRMED TO DONATE
-               </>
-             ) : (
-               <>
-                 <Heart size={22} className="mr-2 fill-current" /> {loading ? 'CONFIRMING...' : 'I CAN DONATE'}
-               </>
-             )}
-           </button>
+          {request.phone && (
+            <a 
+              href={`tel:${request.phone}`} 
+              className="w-full bg-white hover:bg-gray-50 border border-gray-200 text-gray-800 py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-sm"
+            >
+              <Phone size={18} /> Call Hospital Directly
+            </a>
+          )}
         </div>
       </div>
     </div>

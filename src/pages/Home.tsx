@@ -130,14 +130,14 @@ const Home: React.FC = () => {
         </div>
       )}
 
-      {/* Emergency Alert Banner */}
-      <div className="bg-red-600 text-white p-3 flex items-center justify-between shadow-sm">
+      {/* Emergency Network Status Banner */}
+      <div className="bg-slate-900 text-white px-4 py-2.5 flex items-center justify-between shadow-sm text-xs">
          <div className="flex items-center space-x-2">
-           <span className="w-2.5 h-2.5 rounded-full bg-white animate-ping"></span>
-           <span className="font-bold text-xs sm:text-sm">CRITICAL: O+ Blood needed nearby!</span>
+           <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+           <span className="font-semibold text-slate-200">LifeGuard Emergency Network: 24/7 Active</span>
          </div>
-         <Link to="/blood-requests/1" className="bg-white text-red-600 px-3 py-1 rounded-full text-xs font-bold shadow hover:bg-red-50 active:scale-95 transition-transform">
-           View
+         <Link to="/blood" className="text-red-400 hover:text-red-300 font-bold underline">
+           Live Requests
          </Link>
       </div>
 
@@ -208,16 +208,23 @@ const Home: React.FC = () => {
           </Link>
         </div>
 
-        {/* Quick Stats */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex justify-between">
-            <div className="text-center w-1/2 border-r border-gray-100">
-              <p className="text-2xl font-black text-gray-900">1,204</p>
-              <p className="text-xs text-gray-500 font-medium">Donors Registered</p>
+        {/* Quick Help & Hotline Banner */}
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center font-bold">
+                108
+              </div>
+              <div>
+                <p className="text-xs font-bold text-gray-900">National Emergency Services</p>
+                <p className="text-[11px] text-gray-500">Ambulance & Disaster Support</p>
+              </div>
             </div>
-            <div className="text-center w-1/2">
-              <p className="text-2xl font-black text-red-600">89</p>
-              <p className="text-xs text-gray-500 font-medium">Lives Saved in 2026</p>
-            </div>
+            <a 
+              href="tel:108"
+              className="px-3.5 py-1.5 bg-red-600 text-white rounded-xl text-xs font-bold shadow hover:bg-red-700 active:scale-95 transition-all"
+            >
+              Call 108
+            </a>
         </div>
       </div>
 

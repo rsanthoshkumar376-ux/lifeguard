@@ -24,16 +24,7 @@ const MedicalProfilePage = () => {
           // fallback
         }
       } else {
-        setProfile({
-          name: 'Demo User',
-          dob: '1995-05-15',
-          gender: 'Male',
-          bloodGroup: 'O+',
-          allergies: ['Penicillin', 'Dust'],
-          emergencyInstructions: 'Keep asthma inhaler nearby.',
-          organDonor: true,
-          visibility: { name: true, bloodGroup: true, emergencyInstructions: true }
-        });
+        setProfile({});
       }
       setLoading(false);
     }

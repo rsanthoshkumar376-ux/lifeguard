@@ -13,12 +13,7 @@ interface Hospital {
   status: TabType;
 }
 
-const mockHospitals: Hospital[] = [
-  { id: '1', name: 'City Care Hospital', regNumber: 'REG-2023-894', address: '123 Main St, Central District', phone: '+1 234-567-8900', submittedDate: '2023-10-25', status: 'pending' },
-  { id: '2', name: 'Metro General', regNumber: 'REG-2023-112', address: '45 West Avenue, North Zone', phone: '+1 234-567-8901', submittedDate: '2023-10-24', status: 'verified' },
-  { id: '3', name: 'Sunrise Clinic', regNumber: 'REG-2023-445', address: '78 East Blvd', phone: '+1 234-567-8902', submittedDate: '2023-10-20', status: 'rejected' },
-  { id: '4', name: 'Hope Medical Center', regNumber: 'REG-2022-999', address: '90 South Road', phone: '+1 234-567-8903', submittedDate: '2022-05-15', status: 'suspended' },
-];
+const mockHospitals: Hospital[] = [];
 
 const HospitalVerificationPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('pending');

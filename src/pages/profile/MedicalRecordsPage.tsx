@@ -14,26 +14,7 @@ interface RecordItem {
 
 const MedicalRecordsPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [files, setFiles] = useState<RecordItem[]>([
-    { 
-      id: '1', 
-      name: 'Blood_Test_CBC_Report.pdf', 
-      type: 'Lab Reports', 
-      date: 'Today', 
-      size: '1.8 MB',
-      aiDiagnosis: 'Severe Anemia (Hb 7.8) & Low Platelets',
-      status: 'CRITICAL'
-    },
-    { 
-      id: '2', 
-      name: 'Prescription_Glucose_HbA1c.jpg', 
-      type: 'Prescriptions', 
-      date: '2 days ago', 
-      size: '2.1 MB',
-      aiDiagnosis: 'Type 2 Diabetes (FBS 188) & Renal Monitor',
-      status: 'MODERATE'
-    }
-  ]);
+  const [files, setFiles] = useState<RecordItem[]>([]);
 
   const handleDelete = (id: string) => {
     if (window.confirm('Delete this record?')) {

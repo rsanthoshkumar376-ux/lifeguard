@@ -3,22 +3,22 @@ import { Users, Activity, Heart, ShieldCheck, CheckCircle, BarChart3, AlertTrian
 
 const AdminDashboard: React.FC = () => {
   const stats = [
-    { label: 'Total Users', value: '12,450', icon: <Users size={24} className="text-blue-500" /> },
-    { label: 'Active Donors', value: '3,820', icon: <Heart size={24} className="text-red-500" /> },
-    { label: 'Verified Hospitals', value: '145', icon: <ShieldCheck size={24} className="text-green-500" /> },
-    { label: 'Active Requests', value: '89', icon: <AlertTriangle size={24} className="text-yellow-500" /> },
-    { label: 'Completed Donations', value: '4,521', icon: <CheckCircle size={24} className="text-purple-500" /> },
+    { label: 'Total Users', value: '1', icon: <Users size={24} className="text-blue-500" /> },
+    { label: 'Active Donors', value: '0', icon: <Heart size={24} className="text-red-500" /> },
+    { label: 'Verified Hospitals', value: '0', icon: <ShieldCheck size={24} className="text-green-500" /> },
+    { label: 'Active Requests', value: '0', icon: <AlertTriangle size={24} className="text-yellow-500" /> },
+    { label: 'Completed Donations', value: '0', icon: <CheckCircle size={24} className="text-purple-500" /> },
   ];
 
   const bloodGroupStats = [
-    { group: 'O+', count: 45, percentage: 80 },
-    { group: 'O-', count: 12, percentage: 30 },
-    { group: 'A+', count: 35, percentage: 65 },
-    { group: 'A-', count: 8, percentage: 20 },
-    { group: 'B+', count: 28, percentage: 55 },
-    { group: 'B-', count: 5, percentage: 15 },
-    { group: 'AB+', count: 15, percentage: 40 },
-    { group: 'AB-', count: 2, percentage: 5 },
+    { group: 'O+', count: 0, percentage: 0 },
+    { group: 'O-', count: 0, percentage: 0 },
+    { group: 'A+', count: 0, percentage: 0 },
+    { group: 'A-', count: 0, percentage: 0 },
+    { group: 'B+', count: 0, percentage: 0 },
+    { group: 'B-', count: 0, percentage: 0 },
+    { group: 'AB+', count: 0, percentage: 0 },
+    { group: 'AB-', count: 0, percentage: 0 },
   ];
 
   return (
