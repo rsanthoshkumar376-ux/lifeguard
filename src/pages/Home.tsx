@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Bell, HeartPulse, Droplet, Users, Hospital, Droplets, Activity, Settings, PhoneCall, LogIn, Download, Smartphone, X, Globe, Sparkles, Moon, Sun } from 'lucide-react';
+import { Bell, HeartPulse, Droplet, Users, Hospital, Droplets, Activity, Settings, PhoneCall, LogIn, Download, Smartphone, X, Globe, Sparkles, Moon, Sun, Bot } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
@@ -180,6 +180,29 @@ const Home: React.FC = () => {
       <div className="p-4 space-y-4">
         {/* Main Action Grid */}
         <div className="grid grid-cols-2 gap-4">
+          {/* AI Medical & Emergency Chatbot Card */}
+          <Link 
+            to="/ai-chat"
+            className="col-span-2 bg-gradient-to-r from-red-600 via-rose-600 to-indigo-700 text-white p-4 rounded-2xl flex items-center justify-between shadow-lg active:scale-95 transition-all border border-red-400/30"
+          >
+            <div className="flex items-center space-x-3.5 text-left">
+              <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center shrink-0 backdrop-blur relative">
+                <Bot size={26} className="text-white" />
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-400 rounded-full border-2 border-red-600 animate-pulse"></span>
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <p className="font-black text-sm sm:text-base leading-tight">AI Medical & First-Aid Chatbot</p>
+                  <span className="bg-emerald-500/20 text-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-400/30">ONLINE</span>
+                </div>
+                <p className="text-xs text-rose-100 mt-0.5">Ask CPR, blood compatibility, symptoms & first-aid 24/7</p>
+              </div>
+            </div>
+            <span className="bg-white text-red-700 px-3.5 py-1.5 rounded-xl text-xs font-black shadow shrink-0 ml-2">
+              Chat
+            </span>
+          </Link>
+
           {/* AI Medical Report Scanner Card */}
           <button 
             onClick={() => setIsAiModalOpen(true)}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import BottomNav from './BottomNav';
+import AiFloatingButton from '../ai/AiFloatingButton';
 
 const AppLayout: React.FC = () => {
   return (
@@ -9,6 +10,7 @@ const AppLayout: React.FC = () => {
       <main className="flex-1 pb-32 max-w-md md:max-w-lg w-full bg-white dark:bg-slate-900 shadow-2xl min-h-screen relative flex flex-col overflow-x-hidden transition-colors duration-200">
         <Outlet />
       </main>
+      <AiFloatingButton />
       <BottomNav />
     </div>
   );
