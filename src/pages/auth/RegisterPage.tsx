@@ -5,6 +5,7 @@ import {
   Droplet, Calendar, Check, Camera, Shield, Loader2, AlertCircle
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import DobSelector from '../../components/ui/DobSelector';
 
 const STEPS = ['Personal Info', 'Contact', 'Blood Donation', 'Consent'];
 
@@ -198,26 +199,10 @@ const RegisterPage: React.FC = () => {
                 </div>
               </div>
 
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-sm font-bold text-gray-700">Date of Birth (18+ only) *</label>
-                  <span className="text-[11px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded">Must be born on or before {maxBirthDate18}</span>
-                </div>
-                <div className="relative">
-                  <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input 
-                    type="date" 
-                    max={maxBirthDate18}
-                    min={minBirthDate100}
-                    value={formData.dob} 
-                    onChange={e => updateForm('dob', e.target.value)}
-                    className="w-full bg-white text-gray-900 font-medium pl-11 pr-4 py-3.5 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-red-500 outline-none" 
-                  />
-                </div>
-                <p className="text-[11px] text-gray-500 mt-1.5">
-                  * Under Indian blood transfusion rules, emergency donors and registered medical ID holders must be 18 years of age or older.
-                </p>
-              </div>
+              <DobSelector 
+                value={formData.dob} 
+                onChange={(dobVal) => updateForm('dob', dobVal)} 
+              />
 
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1.5">Gender</label>

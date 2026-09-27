@@ -3,6 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { getMedicalProfile, saveMedicalProfile, MedicalProfile } from '../../services/medicalProfile';
 import { Save, AlertCircle, Check, Sparkles } from 'lucide-react';
 import AiReportModal from '../../components/medical/AiReportModal';
+import DobSelector from '../../components/ui/DobSelector';
 
 const MedicalProfilePage = () => {
   const { user } = useAuth();
@@ -128,21 +129,12 @@ const MedicalProfilePage = () => {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1 flex items-center justify-between">
-              <span>Date of Birth</span>
-              <span className="text-[11px] text-red-600 font-bold bg-red-50 px-1.5 py-0.5 rounded border border-red-200">18+ Only</span>
-            </label>
-            <input 
-              type="date" 
-              max={maxBirthDate18}
-              min={minBirthDate100}
-              className="w-full bg-white text-gray-900 font-medium border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" 
-              value={profile.dob || ''} 
-              onChange={(e) => handleChange('dob', e.target.value)} 
-            />
-          </div>
+        <div className="space-y-4">
+          <DobSelector 
+            value={profile.dob || ''} 
+            onChange={(dobVal) => handleChange('dob', dobVal)} 
+          />
+
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">Gender</label>
             <select 
