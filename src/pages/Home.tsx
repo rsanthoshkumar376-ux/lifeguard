@@ -1,19 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Bell, HeartPulse, Droplet, Users, Hospital, Droplets, Activity, Settings, PhoneCall, LogIn, Download, Smartphone, X } from 'lucide-react';
+import { Bell, HeartPulse, Droplet, Users, Hospital, Droplets, Activity, Settings, PhoneCall, LogIn, Download, Smartphone, X, Globe, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import AiReportModal from '../components/medical/AiReportModal';
-import { Sparkles } from 'lucide-react';
+import LanguageModal from '../components/common/LanguageModal';
 
 const Home: React.FC = () => {
   const { user } = useAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [installPrompt, setInstallPrompt] = useState<any>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [showInstallGuide, setShowInstallGuide] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
 
   useEffect(() => {
     // Check if running in standalone mode (already installed)
@@ -56,11 +57,20 @@ const Home: React.FC = () => {
              )}
           </div>
           <div>
-            <p className="text-xs text-gray-500 font-medium">Welcome to LifeGuard</p>
+            <p className="text-xs text-gray-500 font-medium">{t('home.welcome', 'Welcome to LifeGuard')}</p>
             <p className="font-bold text-gray-900 text-sm">{user?.fullName || 'Emergency Guest'}</p>
           </div>
         </div>
         <div className="flex items-center space-x-2">
+          {/* Language Selector Button */}
+          <button 
+            onClick={() => setIsLanguageModalOpen(true)}
+            className="p-2 text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 transition-all active:scale-95 flex items-center justify-center relative"
+            title="Language / மொழி / भाषा"
+          >
+            <Globe size={18} />
+          </button>
+
           {/* Notifications Bell */}
           <Link 
             to="/notifications" 
@@ -82,7 +92,7 @@ const Home: React.FC = () => {
 
           {!user && (
             <Link to="/login" className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold flex items-center shadow active:scale-95 transition-all ml-1">
-              <LogIn size={14} className="mr-1" /> Login
+              <LogIn size={14} className="mr-1" /> {t('auth.login', 'Login')}
             </Link>
           )}
         </div>
@@ -179,47 +189,47 @@ const Home: React.FC = () => {
           </button>
           <Link to="/emergency/sos" className="col-span-2 bg-gradient-to-r from-red-600 to-red-700 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow-lg active:scale-95 transition-transform">
              <PhoneCall size={32} className="mb-1 animate-bounce" />
-             <span className="font-black text-lg tracking-wide">SOS EMERGENCY</span>
+             <span className="font-black text-lg tracking-wide">{t('emergency.sos', 'SOS EMERGENCY')}</span>
           </Link>
           
           <Link to="/hospital/create-request" className="bg-orange-500 hover:bg-orange-600 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
              <Droplet size={28} className="mb-1" />
-             <span className="font-bold text-sm">Need Blood</span>
+             <span className="font-bold text-sm">{t('blood.request', 'Need Blood')}</span>
           </Link>
           
           <Link to="/emergency/id" className="bg-blue-600 hover:bg-blue-700 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
              <HeartPulse size={28} className="mb-1" />
-             <span className="font-bold text-sm">Emergency ID</span>
+             <span className="font-bold text-sm">{t('emergency.medicalId', 'Emergency ID')}</span>
           </Link>
           
           <Link to="/qr" className="bg-purple-600 hover:bg-purple-700 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
              <span className="text-2xl mb-1">📱</span>
-             <span className="font-bold text-sm">My QR ID</span>
+             <span className="font-bold text-sm">{t('qr.title', 'My QR ID')}</span>
           </Link>
           
           <Link to="/medical-profile" className="bg-teal-600 hover:bg-teal-700 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
              <Users size={28} className="mb-1" />
-             <span className="font-bold text-sm">Medical Profile</span>
+             <span className="font-bold text-sm">{t('profile.medical', 'Medical Profile')}</span>
           </Link>
 
           <Link to="/nearby-hospitals" className="bg-emerald-600 hover:bg-emerald-700 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
              <Hospital size={28} className="mb-1" />
-             <span className="font-bold text-sm">Nearby Hospitals</span>
+             <span className="font-bold text-sm">{t('home.nearbyHospitals', 'Nearby Hospitals')}</span>
           </Link>
           
           <Link to="/blood/donor-profile" className="bg-rose-600 hover:bg-rose-700 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
              <Droplets size={28} className="mb-1" />
-             <span className="font-bold text-sm">Blood Donation</span>
+             <span className="font-bold text-sm">{t('blood.donate', 'Blood Donation')}</span>
           </Link>
 
           <Link to="/activity" className="bg-slate-700 hover:bg-slate-800 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
              <Activity size={28} className="mb-1" />
-             <span className="font-bold text-sm">My Activity</span>
+             <span className="font-bold text-sm">{t('home.recentActivity', 'My Activity')}</span>
           </Link>
           
           <Link to="/settings" className="bg-slate-800 hover:bg-slate-900 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
              <Settings size={28} className="mb-1" />
-             <span className="font-bold text-sm">Settings</span>
+             <span className="font-bold text-sm">{t('profile.settings', 'Settings')}</span>
           </Link>
         </div>
 
@@ -245,6 +255,9 @@ const Home: React.FC = () => {
 
       {/* AI Report Scanner Modal */}
       <AiReportModal isOpen={isAiModalOpen} onClose={() => setIsAiModalOpen(false)} />
+
+      {/* Language Selection Modal */}
+      <LanguageModal isOpen={isLanguageModalOpen} onClose={() => setIsLanguageModalOpen(false)} />
     </div>
   );
 };

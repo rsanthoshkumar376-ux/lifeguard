@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { Phone, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 
 const LoginPage: React.FC = () => {
   const { setupRecaptcha, sendOtp, verifyOtp, loading: authLoading, error: authError } = useAuth();
+  const { i18n } = useTranslation();
   const navigate = useNavigate();
   
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -174,16 +176,34 @@ const LoginPage: React.FC = () => {
         </div>
 
         {/* Language Selector */}
-        <div className="flex justify-center gap-4 text-xs font-medium text-gray-400">
-          {['EN', 'தமிழ்', 'हिंदी'].map(lang => (
-            <button
-              key={lang}
-              onClick={() => setLanguage(lang)}
-              className={`${language === lang ? 'text-blue-600' : 'hover:text-gray-600'}`}
-            >
-              {lang}
-            </button>
-          ))}
+        <div className="flex flex-wrap justify-center gap-2 text-xs font-semibold text-gray-500 pt-3 border-t border-gray-100">
+          {[
+            { code: 'en', label: 'English' },
+            { code: 'ta', label: 'தமிழ்' },
+            { code: 'hi', label: 'हिंदी' },
+            { code: 'te', label: 'తెలుగు' },
+            { code: 'kn', label: 'ಕನ್ನಡ' },
+            { code: 'ml', label: 'മലയാളം' }
+          ].map(lang => {
+            const isCurrent = (i18n.language || 'en').startsWith(lang.code);
+            return (
+              <button
+                key={lang.code}
+                type="button"
+                onClick={() => {
+                  i18n.changeLanguage(lang.code);
+                  localStorage.setItem('i18nextLng', lang.code);
+                }}
+                className={`px-2.5 py-1 rounded-lg transition-colors ${
+                  isCurrent
+                    ? 'bg-red-50 text-red-600 font-bold border border-red-200 shadow-xs' 
+                    : 'hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                {lang.label}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>

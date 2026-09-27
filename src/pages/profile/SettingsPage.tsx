@@ -1,10 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft, User, Shield, Globe, Moon, Info, Trash2, LogOut, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import LanguageModal, { LANGUAGES } from '../../components/common/LanguageModal';
 
 const SettingsPage: React.FC = () => {
   const { logout } = useAuth() as any;
+  const { i18n } = useTranslation();
+  const [isLangModalOpen, setIsLangModalOpen] = useState(false);
+
+  const activeLangCode = i18n.language ? i18n.language.split('-')[0] : 'en';
+  const currentLangObj = LANGUAGES.find(l => l.code === activeLangCode) || LANGUAGES[0];
 
   const SettingItem = ({ icon: Icon, title, value, onClick, textClass = "text-gray-900" }: any) => (
     <div onClick={onClick} className="flex items-center justify-between p-4 bg-white border-b border-gray-50 active:bg-gray-50 cursor-pointer">
@@ -40,7 +47,12 @@ const SettingsPage: React.FC = () => {
         <div>
           <h2 className="text-xs font-bold text-gray-500 uppercase px-4 mb-2">Preferences</h2>
           <div className="bg-white border-t border-b border-gray-200">
-             <SettingItem icon={Globe} title="Language" value="English" />
+             <SettingItem 
+               icon={Globe} 
+               title="Language" 
+               value={currentLangObj?.native ? `${currentLangObj.native} (${currentLangObj.name})` : "English"} 
+               onClick={() => setIsLangModalOpen(true)}
+             />
              <div className="flex items-center justify-between p-4 bg-white border-b border-gray-50">
                <div className="flex items-center">
                  <Moon size={20} className="mr-3 text-gray-400" />
@@ -79,6 +91,8 @@ const SettingsPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <LanguageModal isOpen={isLangModalOpen} onClose={() => setIsLangModalOpen(false)} />
     </div>
   );
 };
