@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  ArrowLeft, Send, Mic, MicOff, Volume2, Trash2, 
-  Sparkles, Bot, User, PhoneCall, AlertTriangle, 
-  Heart, Droplets, Hospital, ShieldAlert, FileText, CheckCircle2 
+  ArrowLeft, Send, Mic, MicOff, Volume2, VolumeX, Trash2, 
+  Bot, User, PhoneCall, AlertTriangle, Phone, 
+  Droplets, Hospital, ShieldAlert, FileText, Sparkles, 
+  Radio, X, CheckCircle2, ChevronRight
 } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { 
   ChatMessage, getSavedChatHistory, saveChatHistory, 
   clearChatHistory, getAiChatResponse 
@@ -27,8 +28,14 @@ const AiChatPage: React.FC = () => {
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [transcriptPreview, setTranscriptPreview] = useState('');
+  const [autoSpeak, setAutoSpeak] = useState(false);
+  const [isVoiceCallMode, setIsVoiceCallMode] = useState(false);
   const [isAiReportModalOpen, setIsAiReportModalOpen] = useState(false);
+  const [activeSpeakingId, setActiveSpeakingId] = useState<string | null>(null);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
@@ -40,24 +47,34 @@ const AiChatPage: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  // Voice Speech Recognition Setup
+  // Speech Recognition Setup (Web Speech API)
   useEffect(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRecognition) {
       const recognition = new SpeechRecognition();
       recognition.continuous = false;
-      recognition.interimResults = false;
+      recognition.interimResults = true;
       recognition.lang = 'en-US';
 
-      recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        if (transcript) {
-          setInputText((prev) => (prev ? `${prev} ${transcript}` : transcript));
-        }
-        setIsListening(false);
+      recognition.onstart = () => {
+        setIsListening(true);
+        setTranscriptPreview('');
       };
 
-      recognition.onerror = () => {
+      recognition.onresult = (event: any) => {
+        let current = '';
+        for (let i = 0; i < event.results.length; i++) {
+          current += event.results[i][0].transcript;
+        }
+        setTranscriptPreview(current);
+        if (event.results[0].isFinal) {
+          setInputText(current);
+          handleSend(current, true);
+        }
+      };
+
+      recognition.onerror = (e: any) => {
+        console.warn('Speech recognition error:', e);
         setIsListening(false);
       };
 
@@ -70,41 +87,66 @@ const AiChatPage: React.FC = () => {
   }, []);
 
   const toggleListening = () => {
-    if (!recognitionRef.current) {
-      alert('Speech recognition is not supported on this browser.');
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('Speech recognition is not supported on this browser. You can type your question directly in the text box below.');
       return;
     }
+
     if (isListening) {
-      recognitionRef.current.stop();
+      recognitionRef.current?.stop();
       setIsListening(false);
     } else {
       try {
-        recognitionRef.current.start();
-        setIsListening(true);
+        setTranscriptPreview('');
+        recognitionRef.current?.start();
       } catch (err) {
-        console.warn(err);
+        console.warn('Recognition start error:', err);
       }
     }
   };
 
-  const speakText = (text: string) => {
+  const speakText = (text: string, msgId?: string) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
-      // Remove markdown characters for speech
+      if (activeSpeakingId === msgId) {
+        setActiveSpeakingId(null);
+        return;
+      }
+
       const cleanText = text
         .replace(/[#*_`>]/g, '')
         .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+
       const utterance = new SpeechSynthesisUtterance(cleanText);
       utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+
+      utterance.onstart = () => {
+        if (msgId) setActiveSpeakingId(msgId);
+      };
+      utterance.onend = () => {
+        setActiveSpeakingId(null);
+      };
+      utterance.onerror = () => {
+        setActiveSpeakingId(null);
+      };
+
       window.speechSynthesis.speak(utterance);
     } else {
-      alert('Text-to-speech is not supported on this device.');
+      alert('Text-to-speech is not supported on this browser.');
     }
   };
 
-  const handleSend = async (textToSend?: string) => {
-    const query = (textToSend || inputText).trim();
+  const handleSend = async (textToSend?: string, wasSpoken?: boolean) => {
+    const query = (textToSend !== undefined ? textToSend : inputText).trim();
     if (!query || isTyping) return;
+
+    // Stop ongoing speech
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      setActiveSpeakingId(null);
+    }
 
     const userMsg: ChatMessage = {
       id: 'usr_' + Date.now(),
@@ -117,6 +159,7 @@ const AiChatPage: React.FC = () => {
     setMessages(newHistory);
     saveChatHistory(newHistory);
     setInputText('');
+    setTranscriptPreview('');
     setIsTyping(true);
 
     try {
@@ -124,6 +167,11 @@ const AiChatPage: React.FC = () => {
       const updated = [...newHistory, botResponse];
       setMessages(updated);
       saveChatHistory(updated);
+
+      // If in Voice Call mode or autoSpeak is enabled or query was spoken: read out loud!
+      if (isVoiceCallMode || autoSpeak || wasSpoken) {
+        speakText(botResponse.text, botResponse.id);
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -132,7 +180,8 @@ const AiChatPage: React.FC = () => {
   };
 
   const handleClearHistory = () => {
-    if (window.confirm('Clear your conversation history with LifeGuard AI?')) {
+    if (window.confirm('Clear all conversation history with LifeGuard AI?')) {
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
       clearChatHistory();
       setMessages(getSavedChatHistory());
     }
@@ -161,13 +210,13 @@ const AiChatPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex flex-col text-gray-900 dark:text-gray-100 transition-colors">
-      {/* Sticky Header */}
-      <header className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 p-3.5 sticky top-0 z-20 flex items-center justify-between shadow-sm">
-        <div className="flex items-center space-x-3">
+    <div className="h-full flex flex-col bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-gray-100 transition-colors relative">
+      {/* Top Header */}
+      <header className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 p-3 sticky top-0 z-20 flex items-center justify-between shadow-sm shrink-0">
+        <div className="flex items-center space-x-2.5">
           <button 
             onClick={() => navigate(-1)} 
-            className="p-1.5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"
+            className="p-1.5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
           >
             <ArrowLeft size={22} />
           </button>
@@ -179,48 +228,71 @@ const AiChatPage: React.FC = () => {
             <div>
               <div className="flex items-center gap-1.5">
                 <h1 className="font-black text-sm text-gray-900 dark:text-white leading-tight">LifeGuard AI</h1>
-                <span className="bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 text-[10px] font-bold px-1.5 py-0.2 rounded-md">24/7 MEDICAL</span>
+                <span className="bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 text-[10px] font-black px-1.5 py-0.2 rounded-md border border-emerald-300 dark:border-emerald-800">
+                  ONLINE
+                </span>
               </div>
               <p className="text-[11px] text-gray-500 dark:text-gray-400">Emergency & Blood Assistant</p>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center space-x-1">
-          <a
-            href="tel:108"
-            className="flex items-center gap-1 px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-black shadow-sm active:scale-95 transition-all"
-            title="Emergency 108 Hotline"
+        {/* Action Controls */}
+        <div className="flex items-center space-x-1.5">
+          {/* Start Voice Call Mode */}
+          <button
+            onClick={() => {
+              setIsVoiceCallMode(true);
+              if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+            }}
+            className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white rounded-xl text-xs font-black shadow-sm active:scale-95 transition-all"
+            title="Start Voice Call with LifeGuard AI"
           >
-            <PhoneCall size={13} />
-            <span>108</span>
-          </a>
+            <Radio size={14} className="animate-pulse" />
+            <span>Voice Call</span>
+          </button>
+
+          {/* Auto Speak Toggle */}
+          <button
+            onClick={() => setAutoSpeak(!autoSpeak)}
+            className={`p-2 rounded-xl border transition-all ${
+              autoSpeak 
+                ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800' 
+                : 'text-gray-400 border-gray-200 dark:border-slate-800 hover:bg-gray-100 dark:hover:bg-slate-800'
+            }`}
+            title={autoSpeak ? "Auto-speak replies: ON" : "Auto-speak replies: OFF"}
+          >
+            {autoSpeak ? <Volume2 size={16} /> : <VolumeX size={16} />}
+          </button>
+
+          {/* Clear History */}
           <button
             onClick={handleClearHistory}
             className="p-2 text-gray-400 hover:text-red-500 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
             title="Clear Chat History"
           >
-            <Trash2 size={18} />
+            <Trash2 size={16} />
           </button>
         </div>
       </header>
 
-      {/* Medical Safety Disclaimer Strip */}
-      <div className="bg-amber-50 dark:bg-amber-950/30 border-b border-amber-200/60 dark:border-amber-900/40 px-4 py-1.5 text-[11px] text-amber-800 dark:text-amber-300 flex items-center justify-between">
+      {/* Safety Notice Strip */}
+      <div className="bg-amber-50 dark:bg-amber-950/30 border-b border-amber-200/60 dark:border-amber-900/40 px-3.5 py-1 text-[11px] text-amber-800 dark:text-amber-300 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-1.5">
           <AlertTriangle size={13} className="shrink-0 text-amber-600" />
-          <span>LifeGuard AI provides instant first-aid advice. For life threats, call 108 immediately.</span>
+          <span>Instant medical guidance. For life threats, dial 108 immediately.</span>
         </div>
+        <a href="tel:108" className="font-black underline text-red-600 ml-2 shrink-0">Call 108</a>
       </div>
 
       {/* Messages Scroll Area */}
-      <div className="flex-1 p-4 space-y-4 max-w-2xl mx-auto w-full overflow-y-auto pb-44">
+      <div className="flex-1 p-4 space-y-4 overflow-y-auto">
         {messages.map((msg) => (
           <div 
             key={msg.id}
             className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
           >
-            <div className={`flex items-start gap-2.5 max-w-[92%] sm:max-w-[85%] ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+            <div className={`flex items-start gap-2.5 max-w-[94%] sm:max-w-[85%] ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
               {/* Avatar */}
               <div className={`w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold shadow-sm ${
                 msg.sender === 'user'
@@ -230,7 +302,7 @@ const AiChatPage: React.FC = () => {
                 {msg.sender === 'user' ? <User size={15} /> : <Bot size={16} />}
               </div>
 
-              {/* Message Content Bubble */}
+              {/* Message Bubble */}
               <div className="space-y-2">
                 <div className={`p-4 rounded-3xl text-sm leading-relaxed shadow-sm transition-all ${
                   msg.sender === 'user'
@@ -239,8 +311,7 @@ const AiChatPage: React.FC = () => {
                     ? 'bg-red-50 dark:bg-red-950/50 border-2 border-red-500 text-red-950 dark:text-red-100 rounded-tl-none'
                     : 'bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 text-gray-900 dark:text-gray-100 rounded-tl-none'
                 }`}>
-                  {/* Markdown Renderer for Bot */}
-                  <div className="whitespace-pre-line space-y-2 prose dark:prose-invert max-w-none text-xs sm:text-sm">
+                  <div className="whitespace-pre-line space-y-1.5 text-xs sm:text-sm">
                     {msg.text.split('\n').map((line, i) => {
                       if (line.startsWith('### ')) {
                         return <h3 key={i} className="font-black text-sm text-red-600 dark:text-red-400 mt-1 mb-1">{line.replace('### ', '')}</h3>;
@@ -250,7 +321,7 @@ const AiChatPage: React.FC = () => {
                       }
                       if (line.startsWith('> ')) {
                         return (
-                          <div key={i} className="p-2 bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500 rounded-r-lg text-amber-900 dark:text-amber-200 text-xs italic my-1">
+                          <div key={i} className="p-2.5 bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500 rounded-r-lg text-amber-900 dark:text-amber-200 text-xs italic my-1.5">
                             {line.replace('> ', '')}
                           </div>
                         );
@@ -260,16 +331,20 @@ const AiChatPage: React.FC = () => {
                   </div>
 
                   {/* Message Footer */}
-                  <div className="flex items-center justify-between pt-2 mt-1 border-t border-black/5 dark:border-white/5 text-[10px] text-gray-400">
+                  <div className="flex items-center justify-between pt-2 mt-1.5 border-t border-black/5 dark:border-white/5 text-[10px] text-gray-400">
                     <span>{msg.timestamp}</span>
                     {msg.sender === 'bot' && (
                       <button 
-                        onClick={() => speakText(msg.text)}
-                        className="hover:text-red-500 dark:hover:text-red-400 flex items-center gap-1 transition-colors"
-                        title="Read out loud"
+                        onClick={() => speakText(msg.text, msg.id)}
+                        className={`flex items-center gap-1 font-bold transition-colors ${
+                          activeSpeakingId === msg.id 
+                            ? 'text-red-600 dark:text-red-400 animate-pulse' 
+                            : 'hover:text-red-500 dark:hover:text-red-400'
+                        }`}
+                        title="Listen to response"
                       >
                         <Volume2 size={13} />
-                        <span>Listen</span>
+                        <span>{activeSpeakingId === msg.id ? 'Speaking...' : 'Listen'}</span>
                       </button>
                     )}
                   </div>
@@ -320,65 +395,174 @@ const AiChatPage: React.FC = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Floating Prompt Suggestions & Bottom Input Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-gray-200 dark:border-slate-800 z-30 pb-safe">
-        {/* Suggestion Chips */}
-        <div className="px-4 pt-2.5 pb-1 flex space-x-2 overflow-x-auto no-scrollbar max-w-2xl mx-auto">
-          {SUGGESTED_QUERIES.map((chip, i) => (
-            <button
-              key={i}
-              onClick={() => handleSend(chip)}
-              className="px-3 py-1.5 bg-gray-100 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-950/40 text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 text-xs font-semibold rounded-full whitespace-nowrap border border-gray-200/80 dark:border-slate-700 transition-all shrink-0 active:scale-95"
-            >
-              {chip}
-            </button>
-          ))}
-        </div>
-
-        {/* Input Bar Form */}
-        <div className="p-3 max-w-2xl mx-auto">
-          <form 
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSend();
+      {/* Live Voice Recording Floating Banner */}
+      {isListening && (
+        <div className="bg-red-600 text-white px-4 py-2.5 flex items-center justify-between shadow-lg animate-in slide-in-from-bottom-2 shrink-0">
+          <div className="flex items-center gap-2.5 overflow-hidden">
+            <span className="w-3 h-3 rounded-full bg-white animate-ping shrink-0"></span>
+            <span className="text-xs font-bold truncate">
+              {transcriptPreview ? `"${transcriptPreview}"` : "Listening... Speak your emergency question now"}
+            </span>
+          </div>
+          <button
+            onClick={() => {
+              recognitionRef.current?.stop();
+              setIsListening(false);
+              if (transcriptPreview.trim()) {
+                handleSend(transcriptPreview, true);
+              }
             }}
-            className="flex items-center gap-2 bg-gray-50 dark:bg-slate-800/80 border border-gray-300 dark:border-slate-700 rounded-2xl p-1.5 focus-within:ring-2 focus-within:ring-red-500 focus-within:border-transparent transition-all"
+            className="px-3 py-1 bg-white text-red-600 hover:bg-gray-100 rounded-lg text-xs font-black shrink-0 active:scale-95 transition-all ml-2"
           >
-            {/* Mic Button */}
-            <button
-              type="button"
-              onClick={toggleListening}
-              className={`p-2.5 rounded-xl transition-all ${
-                isListening 
-                  ? 'bg-red-600 text-white animate-pulse' 
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-slate-700'
-              }`}
-              title={isListening ? 'Listening... click to stop' : 'Speak your question'}
-            >
-              {isListening ? <MicOff size={18} /> : <Mic size={18} />}
-            </button>
-
-            {/* Text Input */}
-            <input 
-              type="text"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              placeholder={isListening ? "Listening... Speak now..." : "Ask any emergency, blood, or symptom question..."}
-              className="flex-1 bg-transparent text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 text-sm outline-none px-2 font-medium"
-            />
-
-            {/* Send Button */}
-            <button
-              type="submit"
-              disabled={!inputText.trim() || isTyping}
-              className="p-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:hover:bg-red-600 text-white rounded-xl shadow-md active:scale-95 transition-all"
-              title="Send message"
-            >
-              <Send size={18} />
-            </button>
-          </form>
+            Send
+          </button>
         </div>
+      )}
+
+      {/* Suggestion Chips */}
+      <div className="px-3 pt-2 pb-1 flex space-x-2 overflow-x-auto no-scrollbar shrink-0 bg-white dark:bg-slate-900 border-t border-gray-100 dark:border-slate-800">
+        {SUGGESTED_QUERIES.map((chip, i) => (
+          <button
+            key={i}
+            onClick={() => handleSend(chip)}
+            className="px-3 py-1.5 bg-gray-100 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-950/40 text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 text-xs font-bold rounded-full whitespace-nowrap border border-gray-200/80 dark:border-slate-700 transition-all shrink-0 active:scale-95"
+          >
+            {chip}
+          </button>
+        ))}
       </div>
+
+      {/* Bottom Input Bar — Always visible, completely unblocked */}
+      <div className="p-3 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 shrink-0">
+        <form 
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSend();
+          }}
+          className="flex items-center gap-2 bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-2xl p-1.5 focus-within:ring-2 focus-within:ring-red-500 focus-within:border-transparent transition-all shadow-inner"
+        >
+          {/* Mic Button to Talk */}
+          <button
+            type="button"
+            onClick={toggleListening}
+            className={`p-2.5 rounded-xl transition-all shrink-0 ${
+              isListening 
+                ? 'bg-red-600 text-white animate-pulse shadow-md' 
+                : 'text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-200 dark:hover:bg-slate-700'
+            }`}
+            title={isListening ? 'Listening... click to stop' : 'Tap to speak your question'}
+          >
+            {isListening ? <MicOff size={20} /> : <Mic size={20} />}
+          </button>
+
+          {/* Typing Input Box */}
+          <input 
+            ref={inputRef}
+            type="text"
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            placeholder="Type symptoms, first aid, or blood question..."
+            className="flex-1 bg-transparent text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 text-sm outline-none px-2 font-medium"
+          />
+
+          {/* Send Button */}
+          <button
+            type="submit"
+            disabled={!inputText.trim() || isTyping}
+            className="p-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:hover:bg-red-600 text-white rounded-xl shadow-md active:scale-95 transition-all shrink-0"
+            title="Send message"
+          >
+            <Send size={18} />
+          </button>
+        </form>
+      </div>
+
+      {/* FULL-SCREEN INTERACTIVE VOICE CALL MODE */}
+      {isVoiceCallMode && (
+        <div className="fixed inset-0 z-50 bg-slate-950 text-white flex flex-col justify-between p-6 animate-in fade-in">
+          {/* Call Header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="text-xs font-black uppercase tracking-widest text-emerald-400">Live Voice Call</span>
+            </div>
+            <button
+              onClick={() => {
+                if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+                recognitionRef.current?.stop();
+                setIsVoiceCallMode(false);
+              }}
+              className="p-2 text-gray-400 hover:text-white rounded-full bg-white/10 hover:bg-white/20 transition-all"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          {/* Call Body */}
+          <div className="flex flex-col items-center justify-center text-center space-y-6 my-auto">
+            {/* Animated Pulsing Voice Avatar */}
+            <div className="relative">
+              <span className="absolute -inset-6 rounded-full bg-red-600/30 animate-ping"></span>
+              <span className="absolute -inset-12 rounded-full bg-red-500/20 animate-pulse"></span>
+              <div className="w-32 h-32 rounded-full bg-gradient-to-tr from-red-600 via-rose-600 to-indigo-600 flex items-center justify-center shadow-2xl relative border-4 border-white/20">
+                <Bot size={60} className="text-white" />
+              </div>
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-black">Dr. LifeGuard AI</h2>
+              <p className="text-xs text-slate-400 mt-1">24/7 Voice Medical Assistant</p>
+            </div>
+
+            {/* Live Subtitles & Transcript */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 max-w-sm w-full min-h-[80px] flex items-center justify-center text-center">
+              {isListening ? (
+                <div className="space-y-1">
+                  <p className="text-xs text-red-400 font-bold animate-pulse">Listening to your voice...</p>
+                  <p className="text-sm font-medium">{transcriptPreview || "Speak now..."}</p>
+                </div>
+              ) : isTyping ? (
+                <div className="space-y-1">
+                  <p className="text-xs text-indigo-400 font-bold animate-pulse">Thinking & reviewing medical protocols...</p>
+                </div>
+              ) : (
+                <p className="text-xs text-slate-300">
+                  Tap the microphone below and speak. Dr. LifeGuard will answer aloud!
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Call Controls */}
+          <div className="flex items-center justify-center gap-6 pb-6">
+            {/* Tap to Speak */}
+            <button
+              onClick={toggleListening}
+              className={`w-20 h-20 rounded-full flex flex-col items-center justify-center shadow-2xl active:scale-95 transition-all ${
+                isListening 
+                  ? 'bg-red-600 text-white animate-pulse ring-4 ring-red-400' 
+                  : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+              }`}
+            >
+              {isListening ? <MicOff size={28} /> : <Mic size={28} />}
+              <span className="text-[10px] font-bold mt-1">{isListening ? 'Stop' : 'Speak'}</span>
+            </button>
+
+            {/* End Call */}
+            <button
+              onClick={() => {
+                if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+                recognitionRef.current?.stop();
+                setIsVoiceCallMode(false);
+              }}
+              className="w-16 h-16 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center shadow-xl active:scale-95 transition-all"
+              title="End Voice Call"
+            >
+              <Phone size={24} className="rotate-[135deg]" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* AI Medical Report Analyzer Modal */}
       <AiReportModal 

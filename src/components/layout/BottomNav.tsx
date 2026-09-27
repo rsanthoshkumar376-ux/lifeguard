@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { Home, Droplets, Heart, ClipboardList, User } from 'lucide-react';
 
 interface NavItem {
@@ -18,6 +18,18 @@ const navItems: NavItem[] = [
 ];
 
 const BottomNav: React.FC = () => {
+  const location = useLocation();
+
+  // Hide BottomNav on chat and full-screen assistant pages so the keyboard & input bar have 100% full screen access
+  if (
+    location.pathname.startsWith('/ai-chat') ||
+    location.pathname.startsWith('/assistant') ||
+    location.pathname.startsWith('/ai') ||
+    location.pathname.startsWith('/reset')
+  ) {
+    return null;
+  }
+
   return (
     <nav className="fixed bottom-0 left-0 w-full bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 pb-safe pt-1 z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] transition-colors duration-200">
       <div className="flex justify-around items-center h-16 max-w-md mx-auto px-2">
