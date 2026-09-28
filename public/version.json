@@ -1,11 +1,11 @@
 {
-  "version": "1.2.0",
-  "buildTime": 1727532000000,
+  "version": "1.2.1",
+  "buildTime": 1727533000000,
   "releaseDate": "2026-09-28",
   "changelog": [
-    "📱 Balanced mobile header layout - no cut-off login button",
-    "📐 Emergency Network 24/7 status banner neatly aligned",
-    "🚫 Removed overlapping floating camera/AI button over Donate Blood",
-    "⚡ Instant Service Worker cache update & live reload on mobile"
+    "📷 Lockscreen-style Camera Mark Icon on Home screen for Emergency & Pandemic periods",
+    "😷 Instant 1-tap Medical ID, stranger notes, and ambulance dialer",
+    "📐 Generous clearance layout (pb-40) - no buttons ever overlapped or blocked",
+    "🔄 Instant service worker auto-update"
   ]
 }

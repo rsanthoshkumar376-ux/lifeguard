@@ -103,7 +103,7 @@ const Home: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24 text-gray-900">
+    <div className="min-h-screen bg-gray-50 pb-40 text-gray-900">
       {/* Header */}
       <header className="bg-white dark:bg-slate-900 shadow-sm px-3.5 py-3 flex items-center justify-between sticky top-0 z-10 border-b border-gray-100 dark:border-slate-800 transition-colors">
         <div className="flex items-center space-x-2.5 min-w-0 pr-2">
@@ -456,6 +456,29 @@ const Home: React.FC = () => {
             </a>
         </div>
       </div>
+
+      {/* 📷 Lockscreen Camera Mark / Emergency Period Shortcut */}
+      <aside aria-label="Emergency Period Quick Access" className="fixed bottom-20 right-3.5 z-40 flex flex-col items-end pointer-events-none">
+        <button
+          onClick={() => setIsQuickMedicalIdOpen(true)}
+          className="pointer-events-auto group relative bg-gradient-to-tr from-red-600 via-rose-600 to-amber-500 text-white w-14 h-14 rounded-full shadow-2xl border-2 border-white ring-4 ring-red-500/25 active:scale-90 hover:scale-105 transition-all flex items-center justify-center cursor-pointer"
+          title="Emergency Period: 1-Tap Medical ID & Stranger Note"
+          aria-label="Open Medical ID and Pandemic Safety Note"
+        >
+          <div className="relative flex items-center justify-center">
+            <Camera size={26} className="text-white drop-shadow" />
+            <span className="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-300 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-amber-400 text-[8px] font-black items-center justify-center text-amber-950">!</span>
+            </span>
+          </div>
+
+          {/* Quick Indicator Badge on hover/initial display */}
+          <span className="absolute right-16 bg-slate-900/90 text-white text-[11px] font-black px-2.5 py-1 rounded-full whitespace-nowrap shadow-xl border border-slate-700 pointer-events-none opacity-90 group-hover:opacity-100 flex items-center gap-1.5 backdrop-blur-sm transition-opacity">
+            <span className="text-amber-400">🚨</span> Emergency ID
+          </span>
+        </button>
+      </aside>
 
       {/* 🪪 Quick Medical ID & Pandemic Notice Modal */}
       <QuickMedicalIdModal 
