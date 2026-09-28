@@ -30,7 +30,7 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen, onClose })
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-in fade-in">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[100] flex items-center justify-center p-4 animate-in fade-in">
       <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
         <div className="flex items-center justify-between pb-2 border-b border-gray-100">
           <div className="flex items-center gap-2 text-gray-900">

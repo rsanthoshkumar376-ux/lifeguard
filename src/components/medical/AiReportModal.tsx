@@ -111,7 +111,7 @@ export const AiReportModal: React.FC<Props> = ({ isOpen, onClose, onProfileUpdat
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in">
+    <div className="fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in">
       <div className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden my-auto border border-gray-100 flex flex-col max-h-[90vh]">
         
         {/* Header */}

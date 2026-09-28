@@ -186,8 +186,8 @@ export const QuickMedicalIdModal: React.FC<QuickMedicalIdModalProps> = ({ isOpen
   const currentStrangerNote = profile?.pandemicNote || customNote || "😷 PANDEMIC SAFETY NOTICE FOR STRANGERS: Please wear a mask & sanitize before touching. Call 108 immediately. Patient requires urgent medical attention.";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] border border-red-500/20">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[84vh] sm:max-h-[88vh] border border-red-500/20 my-auto">
         
         {/* Top Header styled like Camera / Medical Lockscreen */}
         <div className="bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white p-4 relative">
@@ -501,22 +501,31 @@ export const QuickMedicalIdModal: React.FC<QuickMedicalIdModalProps> = ({ isOpen
         </div>
 
         {/* Footer Actions */}
-        <div className="p-3 bg-gray-50 dark:bg-slate-800/80 border-t border-gray-100 dark:border-slate-700 flex items-center justify-between gap-2">
-          <Link
-            to="/emergency/id"
-            onClick={onClose}
-            className="flex-1 py-2.5 px-3 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 hover:bg-gray-100 text-gray-800 dark:text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all text-center"
-          >
-            <User size={14} /> Full Medical ID
-          </Link>
+        <div className="p-3 bg-gray-50 dark:bg-slate-800/90 border-t border-gray-100 dark:border-slate-700 flex flex-col gap-2 shrink-0">
+          <div className="flex items-center justify-between gap-2">
+            <Link
+              to="/emergency/id"
+              onClick={onClose}
+              className="flex-1 py-2.5 px-3 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 hover:bg-gray-100 text-gray-800 dark:text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all text-center"
+            >
+              <User size={14} /> Full Medical ID
+            </Link>
 
-          <Link
-            to="/qr"
+            <Link
+              to="/qr"
+              onClick={onClose}
+              className="flex-1 py-2.5 px-3 bg-slate-900 hover:bg-black text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all text-center"
+            >
+              <QrCode size={14} /> Show My QR Code
+            </Link>
+          </div>
+
+          <button
             onClick={onClose}
-            className="flex-1 py-2.5 px-3 bg-slate-900 hover:bg-black text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all text-center"
+            className="w-full py-2 bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 text-gray-700 dark:text-gray-200 text-xs font-bold rounded-xl active:scale-95 transition-all text-center"
           >
-            <QrCode size={14} /> Show My QR Code
-          </Link>
+            ✕ Close Emergency View
+          </button>
         </div>
 
       </div>

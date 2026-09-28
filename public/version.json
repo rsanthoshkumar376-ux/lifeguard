@@ -1,11 +1,11 @@
 {
-  "version": "1.2.1",
-  "buildTime": 1727533000000,
+  "version": "1.2.2",
+  "buildTime": 1727534500000,
   "releaseDate": "2026-09-28",
   "changelog": [
-    "📷 Lockscreen-style Camera Mark Icon on Home screen for Emergency & Pandemic periods",
-    "😷 Instant 1-tap Medical ID, stranger notes, and ambulance dialer",
-    "📐 Generous clearance layout (pb-40) - no buttons ever overlapped or blocked",
-    "🔄 Instant service worker auto-update"
+    "🔝 Fixed Bottom Navigation bar covering Quick Medical ID modal buttons",
+    "🔘 Added 1-tap Close Emergency View button at bottom of sheet",
+    "📱 Balanced modal height for mobile viewports (no cut-off)",
+    "⚡ Instant z-index layering fix across all dialogs"
   ]
 }
