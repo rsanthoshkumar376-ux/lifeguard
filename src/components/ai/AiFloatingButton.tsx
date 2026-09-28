@@ -6,8 +6,12 @@ export const AiFloatingButton: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Hide on AI chat page itself to avoid redundancy
-  if (location.pathname.startsWith('/ai-chat') || location.pathname.startsWith('/assistant')) {
+  // Hide on Home and AI chat pages to avoid covering primary action buttons
+  if (
+    location.pathname === '/' || 
+    location.pathname.startsWith('/ai-chat') || 
+    location.pathname.startsWith('/assistant')
+  ) {
     return null;
   }
 

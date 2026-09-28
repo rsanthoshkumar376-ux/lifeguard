@@ -94,61 +94,74 @@ const Home: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 pb-24 text-gray-900">
       {/* Header */}
-      <header className="bg-white shadow-sm p-4 flex items-center justify-between sticky top-0 z-10 border-b border-gray-100">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-bold text-lg overflow-hidden border border-red-200">
+      <header className="bg-white dark:bg-slate-900 shadow-sm px-3.5 py-3 flex items-center justify-between sticky top-0 z-10 border-b border-gray-100 dark:border-slate-800 transition-colors">
+        <div className="flex items-center space-x-2.5 min-w-0 pr-2">
+          <div className="w-9 h-9 rounded-full bg-red-100 text-red-600 dark:bg-red-950/60 dark:text-red-400 flex items-center justify-center font-bold text-base overflow-hidden border border-red-200 dark:border-red-900 shrink-0">
              {user?.profilePhotoUrl ? (
                <img src={user.profilePhotoUrl} alt="Profile" className="w-full h-full object-cover" />
              ) : (
                <span>{user?.fullName?.charAt(0) || 'L'}</span>
              )}
           </div>
-          <div>
-            <p className="text-xs text-gray-500 font-medium">{t('home.welcome', 'Welcome to LifeGuard')}</p>
-            <p className="font-bold text-gray-900 text-sm">{user?.fullName || 'Emergency Guest'}</p>
+          <div className="min-w-0">
+            <p className="text-[11px] text-gray-500 dark:text-gray-400 font-medium truncate leading-tight">
+              {t('home.welcome', 'Welcome back')}
+            </p>
+            <p className="font-bold text-gray-900 dark:text-white text-xs sm:text-sm truncate leading-tight max-w-[130px] sm:max-w-[180px]">
+              {user?.fullName || 'Emergency Guest'}
+            </p>
           </div>
         </div>
-        <div className="flex items-center space-x-2">
+
+        <div className="flex items-center space-x-1.5 shrink-0">
           {/* Dark / Light Mode Quick Toggle */}
           <button 
             onClick={toggleTheme}
-            className="p-2 text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 transition-all active:scale-95 flex items-center justify-center relative"
+            className="w-8 h-8 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-800 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 transition-all active:scale-95 flex items-center justify-center"
             title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            aria-label="Toggle Dark Mode"
           >
-            {isDark ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-gray-700" />}
+            {isDark ? <Sun size={16} className="text-amber-400" /> : <Moon size={16} />}
           </button>
 
           {/* Language Selector Button */}
           <button 
             onClick={() => setIsLanguageModalOpen(true)}
-            className="p-2 text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 transition-all active:scale-95 flex items-center justify-center relative"
+            className="w-8 h-8 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-800 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 transition-all active:scale-95 flex items-center justify-center"
             title="Language / மொழி / भाषा"
+            aria-label="Select Language"
           >
-            <Globe size={18} />
+            <Globe size={16} />
           </button>
 
           {/* Notifications Bell */}
           <Link 
             to="/notifications" 
-            className="p-2 text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 relative transition-all active:scale-95"
+            className="w-8 h-8 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-800 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 relative transition-all active:scale-95 flex items-center justify-center"
             title="Notifications & Alerts"
+            aria-label="Notifications"
           >
-            <Bell size={18} />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-600 rounded-full ring-2 ring-white"></span>
+            <Bell size={16} />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-600 rounded-full ring-2 ring-white dark:ring-slate-900"></span>
           </Link>
 
-          {/* Settings Gear */}
-          <Link 
-            to="/settings" 
-            className="p-2 text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 transition-all active:scale-95"
-            title="Settings"
-          >
-            <Settings size={18} />
-          </Link>
-
-          {!user && (
-            <Link to="/login" className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold flex items-center shadow active:scale-95 transition-all ml-1">
-              <LogIn size={14} className="mr-1" /> {t('auth.login', 'Login')}
+          {/* If user logged in: show Settings; if guest: show Login button */}
+          {user ? (
+            <Link 
+              to="/settings" 
+              className="w-8 h-8 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-800 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 transition-all active:scale-95 flex items-center justify-center"
+              title="Settings"
+              aria-label="Settings"
+            >
+              <Settings size={16} />
+            </Link>
+          ) : (
+            <Link 
+              to="/login" 
+              className="px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold flex items-center gap-1 shadow active:scale-95 transition-all"
+            >
+              <LogIn size={13} />
+              <span>{t('auth.login', 'Login')}</span>
             </Link>
           )}
         </div>
@@ -270,14 +283,20 @@ const Home: React.FC = () => {
       )}
 
       {/* Emergency Network Status Banner */}
-      <div className="bg-slate-900 text-white px-4 py-2.5 flex items-center justify-between shadow-sm text-xs">
-         <div className="flex items-center space-x-2">
-           <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-           <span className="font-semibold text-slate-200">LifeGuard Emergency Network: 24/7 Active</span>
-         </div>
-         <Link to="/blood" className="text-red-400 hover:text-red-300 font-bold underline">
-           Live Requests
-         </Link>
+      <div className="bg-slate-900 dark:bg-black text-white px-3.5 py-2 flex items-center justify-between shadow-sm text-xs">
+        <div className="flex items-center space-x-2 overflow-hidden pr-2">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+          <span className="font-semibold text-slate-200 truncate text-[11px] sm:text-xs">
+            Emergency Network: <span className="text-emerald-400 font-bold">24/7 Active</span>
+          </span>
+        </div>
+        <Link 
+          to="/blood/requests" 
+          className="text-red-400 hover:text-red-300 font-bold text-[11px] sm:text-xs shrink-0 flex items-center gap-1 bg-red-950/60 hover:bg-red-900/60 px-2.5 py-1 rounded-full border border-red-800/60 active:scale-95 transition-all"
+        >
+          <span>Live Requests</span>
+          <span className="text-[10px]">→</span>
+        </Link>
       </div>
 
       <div className="p-4 space-y-4">
@@ -318,44 +337,44 @@ const Home: React.FC = () => {
              <span className="font-black text-lg tracking-wide">{t('emergency.sos', 'SOS EMERGENCY')}</span>
           </Link>
           
-          <Link to="/hospital/create-request" className="bg-orange-500 hover:bg-orange-600 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
-             <Droplet size={28} className="mb-1" />
-             <span className="font-bold text-sm">{t('blood.request', 'Need Blood')}</span>
+          <Link to="/hospital/create-request" className="bg-orange-500 hover:bg-orange-600 text-white h-24 rounded-2xl flex flex-col items-center justify-center p-2 shadow active:scale-95 transition-transform text-center">
+             <Droplet size={28} className="mb-1 shrink-0" />
+             <span className="font-bold text-xs sm:text-sm leading-tight px-1">{t('blood.request', 'Need Blood')}</span>
           </Link>
           
-          <Link to="/emergency/id" className="bg-blue-600 hover:bg-blue-700 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
-             <HeartPulse size={28} className="mb-1" />
-             <span className="font-bold text-sm">{t('emergency.medicalId', 'Emergency ID')}</span>
+          <Link to="/emergency/id" className="bg-blue-600 hover:bg-blue-700 text-white h-24 rounded-2xl flex flex-col items-center justify-center p-2 shadow active:scale-95 transition-transform text-center">
+             <HeartPulse size={28} className="mb-1 shrink-0" />
+             <span className="font-bold text-xs sm:text-sm leading-tight px-1">{t('emergency.medicalId', 'Emergency ID')}</span>
           </Link>
           
-          <Link to="/qr" className="bg-purple-600 hover:bg-purple-700 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
-             <span className="text-2xl mb-1">📱</span>
-             <span className="font-bold text-sm">{t('qr.title', 'My QR ID')}</span>
+          <Link to="/qr" className="bg-purple-600 hover:bg-purple-700 text-white h-24 rounded-2xl flex flex-col items-center justify-center p-2 shadow active:scale-95 transition-transform text-center">
+             <span className="text-2xl mb-1 shrink-0">📱</span>
+             <span className="font-bold text-xs sm:text-sm leading-tight px-1">{t('qr.title', 'My QR ID')}</span>
           </Link>
           
-          <Link to="/medical-profile" className="bg-teal-600 hover:bg-teal-700 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
-             <Users size={28} className="mb-1" />
-             <span className="font-bold text-sm">{t('profile.medical', 'Medical Profile')}</span>
+          <Link to="/medical-profile" className="bg-teal-600 hover:bg-teal-700 text-white h-24 rounded-2xl flex flex-col items-center justify-center p-2 shadow active:scale-95 transition-transform text-center">
+             <Users size={28} className="mb-1 shrink-0" />
+             <span className="font-bold text-xs sm:text-sm leading-tight px-1">{t('profile.medical', 'Medical Profile')}</span>
           </Link>
 
-          <Link to="/nearby-hospitals" className="bg-emerald-600 hover:bg-emerald-700 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
-             <Hospital size={28} className="mb-1" />
-             <span className="font-bold text-sm">{t('home.nearbyHospitals', 'Nearby Hospitals')}</span>
+          <Link to="/nearby-hospitals" className="bg-emerald-600 hover:bg-emerald-700 text-white h-24 rounded-2xl flex flex-col items-center justify-center p-2 shadow active:scale-95 transition-transform text-center">
+             <Hospital size={28} className="mb-1 shrink-0" />
+             <span className="font-bold text-xs sm:text-sm leading-tight px-1">{t('home.nearbyHospitals', 'Nearby Hospitals')}</span>
           </Link>
           
-          <Link to="/blood/donor-profile" className="bg-rose-600 hover:bg-rose-700 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
-             <Droplets size={28} className="mb-1" />
-             <span className="font-bold text-sm">{t('blood.donate', 'Blood Donation')}</span>
+          <Link to="/blood/donor-profile" className="bg-rose-600 hover:bg-rose-700 text-white h-24 rounded-2xl flex flex-col items-center justify-center p-2 shadow active:scale-95 transition-transform text-center">
+             <Droplets size={28} className="mb-1 shrink-0" />
+             <span className="font-bold text-xs sm:text-sm leading-tight px-1">{t('blood.donate', 'Blood Donation')}</span>
           </Link>
 
-          <Link to="/activity" className="bg-slate-700 hover:bg-slate-800 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
-             <Activity size={28} className="mb-1" />
-             <span className="font-bold text-sm">{t('home.recentActivity', 'My Activity')}</span>
+          <Link to="/activity" className="bg-slate-700 hover:bg-slate-800 text-white h-24 rounded-2xl flex flex-col items-center justify-center p-2 shadow active:scale-95 transition-transform text-center">
+             <Activity size={28} className="mb-1 shrink-0" />
+             <span className="font-bold text-xs sm:text-sm leading-tight px-1">{t('home.recentActivity', 'My Activity')}</span>
           </Link>
           
-          <Link to="/settings" className="bg-slate-800 hover:bg-slate-900 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow active:scale-95 transition-transform">
-             <Settings size={28} className="mb-1" />
-             <span className="font-bold text-sm">{t('profile.settings', 'Settings')}</span>
+          <Link to="/settings" className="bg-slate-800 hover:bg-slate-900 text-white h-24 rounded-2xl flex flex-col items-center justify-center p-2 shadow active:scale-95 transition-transform text-center">
+             <Settings size={28} className="mb-1 shrink-0" />
+             <span className="font-bold text-xs sm:text-sm leading-tight px-1">{t('profile.settings', 'Settings')}</span>
           </Link>
         </div>
 
@@ -407,29 +426,6 @@ const Home: React.FC = () => {
             </a>
         </div>
       </div>
-
-      {/* 📷 Mobile Floating Camera Mark Shortcut (Lockscreen Camera style) */}
-      <aside aria-label="Quick Emergency Medical ID Trigger" className="fixed bottom-20 right-4 z-40 flex flex-col items-end">
-        <button
-          onClick={() => setIsQuickMedicalIdOpen(true)}
-          className="group relative bg-gradient-to-tr from-red-600 via-rose-600 to-amber-500 text-white w-14 h-14 rounded-full shadow-2xl border-2 border-white ring-4 ring-red-500/25 active:scale-90 hover:scale-105 transition-all flex items-center justify-center cursor-pointer"
-          title="Open Medical ID & Pandemic Note for Strangers"
-          aria-label="Open Medical ID and Pandemic Safety Note"
-        >
-          <div className="relative flex items-center justify-center">
-            <Camera size={26} className="text-white drop-shadow" />
-            <span className="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-300 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-amber-400 text-[8px] font-black items-center justify-center text-amber-950">!</span>
-            </span>
-          </div>
-
-          {/* Quick Indicator Badge */}
-          <span className="absolute right-16 bg-slate-900/90 text-white text-[11px] font-black px-2.5 py-1 rounded-full whitespace-nowrap shadow-xl border border-slate-700 pointer-events-none opacity-90 group-hover:opacity-100 flex items-center gap-1.5 backdrop-blur-sm transition-opacity">
-            <span className="text-amber-400">🚨</span> Medical ID
-          </span>
-        </button>
-      </aside>
 
       {/* 🪪 Quick Medical ID & Pandemic Notice Modal */}
       <QuickMedicalIdModal 
