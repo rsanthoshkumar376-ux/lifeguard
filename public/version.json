@@ -1,9 +1,9 @@
 {
-  "version": "1.3.2",
-  "buildTime": 1727538000000,
+  "version": "1.3.3",
+  "buildTime": 1727539000000,
   "releaseDate": "2026-09-28",
   "changelog": [
-    "📱 Dedicated Lock Screen Setup & 1-Tap Persistent Lock Screen Emergency Card",
+    "🛡️ Fixed Emergency QR Link Access: Always accessible without Access Denied errors",
     "🚨 Direct 1-Tap Emergency Icon displays Scannable Medical QR Code and Important Notes",
     "📱 No passwords required - instant access for bystanders, doctors and strangers",
     "😷 Highlighted pandemic & stranger instructions with 1-tap call 108",

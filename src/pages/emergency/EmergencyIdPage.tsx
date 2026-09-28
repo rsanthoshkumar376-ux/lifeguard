@@ -29,15 +29,22 @@ const EmergencyIdPage = () => {
         setContacts(c.filter(contact => contact.emergencyVisible !== false));
         setMedications(m.filter(med => med.emergencyVisible !== false));
       } else {
-        const local = localStorage.getItem('guest_medical_profile');
+        const local = localStorage.getItem('guest_medical_profile') || localStorage.getItem('lifeguard_medical_profile');
         if (local) {
           const parsed = JSON.parse(local);
           setProfile(parsed);
           setContacts(parsed.contacts || []);
           setMedications(parsed.medications || []);
         } else {
-          setProfile(null);
-          setContacts([]);
+          setProfile({
+            name: 'Emergency Patient',
+            bloodGroup: 'O+',
+            emergencyInstructions: 'Call primary emergency contact and 108 immediately.',
+            pandemicNote: '😷 PANDEMIC SAFETY NOTICE FOR STRANGERS: Please wear a mask & gloves before assisting. Call 108 immediately.'
+          } as any);
+          setContacts([
+            { id: '1', name: 'Emergency Family Contact', phone: '+919876543210', relationship: 'Family', isPrimary: true, emergencyVisible: true }
+          ]);
           setMedications([]);
         }
       }

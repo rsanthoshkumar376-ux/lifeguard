@@ -8,7 +8,7 @@ export interface VersionInfo {
 
 const LOCAL_VERSION_KEY = 'lifeguard_app_version';
 const LOCAL_BUILD_TIME_KEY = 'lifeguard_app_build_time';
-export const CURRENT_APP_VERSION = '1.3.2';
+export const CURRENT_APP_VERSION = '1.3.3';
 
 type UpdateCallback = (info: { hasUpdate: boolean; newVersion?: string; changelog?: string[] }) => void;
 const listeners = new Set<UpdateCallback>();
