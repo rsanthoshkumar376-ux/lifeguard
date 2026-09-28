@@ -3,10 +3,11 @@ import { useAuth } from '../../contexts/AuthContext';
 import { getMedicalProfile, saveMedicalProfile, MedicalProfile, getEmergencyContacts, EmergencyContact, getMedications, Medication } from '../../services/medicalProfile';
 import { 
   AlertTriangle, Phone, X, Camera, ShieldAlert, Sparkles, Check, 
-  ExternalLink, Edit3, HeartPulse, User, QrCode, AlertCircle, RefreshCw
+  ExternalLink, Edit3, HeartPulse, User, QrCode, AlertCircle, RefreshCw, Smartphone
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Html5Qrcode } from 'html5-qrcode';
+import LockScreenEmergencyModal from './LockScreenEmergencyModal';
 
 interface QuickMedicalIdModalProps {
   isOpen: boolean;
@@ -48,6 +49,7 @@ export const QuickMedicalIdModal: React.FC<QuickMedicalIdModalProps> = ({ isOpen
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [isLockScreenModalOpen, setIsLockScreenModalOpen] = useState(false);
 
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
 
@@ -325,6 +327,29 @@ export const QuickMedicalIdModal: React.FC<QuickMedicalIdModalProps> = ({ isOpen
                 </div>
               </div>
 
+              {/* 🔒 LOCK SCREEN EMERGENCY CARD SHORTCUT */}
+              <div 
+                onClick={() => setIsLockScreenModalOpen(true)}
+                className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-3.5 rounded-2xl border border-indigo-500/30 flex items-center justify-between shadow-md cursor-pointer active:scale-98 transition-all hover:border-indigo-400 group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-indigo-600 group-hover:bg-indigo-500 flex items-center justify-center text-white shrink-0 shadow">
+                    <Smartphone size={18} />
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-white flex items-center gap-1.5">
+                      <span>🔒</span> Set on Phone Lock Screen
+                    </p>
+                    <p className="text-[10px] text-indigo-200">
+                      View QR & Notes directly without phone password
+                    </p>
+                  </div>
+                </div>
+                <span className="text-[10px] bg-white text-indigo-950 font-black px-2.5 py-1 rounded-lg shrink-0 shadow">
+                  Setup ➔
+                </span>
+              </div>
+
               {/* ⭐ HIGHLIGHTED STRANGER & PANDEMIC SAFETY NOTICE */}
               <div className="bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-600/70 rounded-2xl p-4 shadow-sm relative overflow-hidden">
                 <div className="flex items-center justify-between mb-2">
@@ -529,6 +554,12 @@ export const QuickMedicalIdModal: React.FC<QuickMedicalIdModalProps> = ({ isOpen
         </div>
 
       </div>
+
+      {/* 📱 Lock Screen Emergency Setup Modal */}
+      <LockScreenEmergencyModal
+        isOpen={isLockScreenModalOpen}
+        onClose={() => setIsLockScreenModalOpen(false)}
+      />
     </div>
   );
 };

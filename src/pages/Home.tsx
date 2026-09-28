@@ -7,6 +7,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import AiReportModal from '../components/medical/AiReportModal';
 import LanguageModal from '../components/common/LanguageModal';
 import QuickMedicalIdModal from '../components/medical/QuickMedicalIdModal';
+import LockScreenEmergencyModal from '../components/medical/LockScreenEmergencyModal';
 import { getMedicalProfile } from '../services/medicalProfile';
 import { subscribeToUpdates, triggerAppUpdate, checkForAppUpdate } from '../services/updateService';
 
@@ -21,6 +22,7 @@ const Home: React.FC = () => {
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
   const [isQuickMedicalIdOpen, setIsQuickMedicalIdOpen] = useState(false);
+  const [isLockScreenModalOpen, setIsLockScreenModalOpen] = useState(false);
   const [userNotePreview, setUserNotePreview] = useState<string>('');
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [updateVersion, setUpdateVersion] = useState('');
@@ -360,6 +362,33 @@ const Home: React.FC = () => {
           </div>
         </div>
 
+        {/* 🔒 Lock Screen Emergency Card Quick Setup */}
+        <div 
+          onClick={() => setIsLockScreenModalOpen(true)}
+          className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-3.5 rounded-2xl shadow-md border border-indigo-500/40 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all hover:border-indigo-400 group"
+        >
+          <div className="flex items-center space-x-3 overflow-hidden pr-2">
+            <div className="w-10 h-10 rounded-xl bg-indigo-600 group-hover:bg-indigo-500 flex items-center justify-center shrink-0 text-white shadow-md">
+              <Smartphone size={20} />
+            </div>
+            <div className="overflow-hidden">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="bg-indigo-500 text-white font-black text-[9px] uppercase px-1.5 py-0.5 rounded tracking-wider shadow-sm">
+                  🔒 LOCK SCREEN
+                </span>
+                <p className="text-xs font-black text-white">View Without Password</p>
+              </div>
+              <p className="text-[11px] text-indigo-200 font-medium truncate mt-0.5">
+                Download HD Lock Screen Card with QR Code & Emergency Notes
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1 shrink-0 bg-white text-indigo-950 px-3 py-1.5 rounded-xl text-xs font-black shadow-md hover:bg-indigo-50 active:scale-95 transition-all">
+            <span>Setup</span>
+            <span className="text-[10px]">➔</span>
+          </div>
+        </div>
+
         {/* Main Action Grid */}
         <div className="grid grid-cols-2 gap-4">
           <Link to="/emergency/sos" className="col-span-2 bg-gradient-to-r from-red-600 to-red-700 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow-lg active:scale-95 transition-transform">
@@ -494,6 +523,12 @@ const Home: React.FC = () => {
 
       {/* Language Selection Modal */}
       <LanguageModal isOpen={isLanguageModalOpen} onClose={() => setIsLanguageModalOpen(false)} />
+
+      {/* 🔒 Phone Lock Screen Emergency Card Modal */}
+      <LockScreenEmergencyModal
+        isOpen={isLockScreenModalOpen}
+        onClose={() => setIsLockScreenModalOpen(false)}
+      />
     </div>
   );
 };

@@ -1,11 +1,11 @@
 {
-  "version": "1.2.2",
-  "buildTime": 1727534500000,
+  "version": "1.3.0",
+  "buildTime": 1727536000000,
   "releaseDate": "2026-09-28",
   "changelog": [
-    "🔝 Fixed Bottom Navigation bar covering Quick Medical ID modal buttons",
-    "🔘 Added 1-tap Close Emergency View button at bottom of sheet",
-    "📱 Balanced modal height for mobile viewports (no cut-off)",
-    "⚡ Instant z-index layering fix across all dialogs"
+    "🔒 Phone Lock Screen Emergency Card & HD Wallpaper generator",
+    "📱 View Scannable QR Code & Notes directly without phone password or PIN",
+    "📌 1-Tap Pin Emergency Alert to Android Lock Screen",
+    "⚙️ Guide for Android native Emergency Information lockscreen button"
   ]
 }
