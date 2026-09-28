@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Bell, HeartPulse, Droplet, Users, Hospital, Droplets, Activity, Settings, PhoneCall, LogIn, Download, Smartphone, X, Globe, Sparkles, Moon, Sun, Bot, Camera, RefreshCw, QrCode } from 'lucide-react';
+import { Bell, HeartPulse, Droplet, Users, Hospital, Droplets, Activity, Settings, PhoneCall, LogIn, Download, Smartphone, X, Globe, Sparkles, Moon, Sun, Bot, Camera, RefreshCw, QrCode, Pin } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import AiReportModal from '../components/medical/AiReportModal';
 import LanguageModal from '../components/common/LanguageModal';
 import QuickMedicalIdModal from '../components/medical/QuickMedicalIdModal';
+import LockScreenGuideModal from '../components/medical/LockScreenGuideModal';
 import { getMedicalProfile } from '../services/medicalProfile';
 import { subscribeToUpdates, triggerAppUpdate, checkForAppUpdate } from '../services/updateService';
 
@@ -21,6 +22,7 @@ const Home: React.FC = () => {
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
   const [isQuickMedicalIdOpen, setIsQuickMedicalIdOpen] = useState(false);
+  const [showLockScreenGuide, setShowLockScreenGuide] = useState(false);
   const [userNotePreview, setUserNotePreview] = useState<string>('');
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [updateVersion, setUpdateVersion] = useState('');
@@ -360,6 +362,17 @@ const Home: React.FC = () => {
           </div>
         </div>
 
+        {/* Quick Lock Screen Icon & Notification Pin Trigger */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowLockScreenGuide(true)}
+            className="flex-1 py-2.5 px-3 bg-white dark:bg-slate-900 border border-red-200 dark:border-red-900/60 rounded-xl text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-slate-800 flex items-center justify-center gap-1.5 shadow-xs active:scale-95 transition-all cursor-pointer"
+          >
+            <Smartphone size={14} className="text-red-600 dark:text-red-400" />
+            <span>📱 Set Lock Screen Icon & Emergency Card</span>
+          </button>
+        </div>
+
         {/* Main Action Grid */}
         <div className="grid grid-cols-2 gap-4">
           <Link to="/emergency/sos" className="col-span-2 bg-gradient-to-r from-red-600 to-red-700 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow-lg active:scale-95 transition-transform">
@@ -494,6 +507,15 @@ const Home: React.FC = () => {
 
       {/* Language Selection Modal */}
       <LanguageModal isOpen={isLanguageModalOpen} onClose={() => setIsLanguageModalOpen(false)} />
+
+      {/* Lock Screen Setup Guide Modal */}
+      <LockScreenGuideModal
+        isOpen={showLockScreenGuide}
+        onClose={() => setShowLockScreenGuide(false)}
+        patientName={user?.fullName || 'Patient'}
+        bloodGroup="O+"
+        pandemicNote={userNotePreview}
+      />
     </div>
   );
 };

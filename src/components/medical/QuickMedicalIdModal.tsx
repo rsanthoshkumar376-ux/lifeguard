@@ -3,11 +3,14 @@ import { useAuth } from '../../contexts/AuthContext';
 import { getMedicalProfile, saveMedicalProfile, MedicalProfile, getEmergencyContacts, EmergencyContact, getMedications, Medication } from '../../services/medicalProfile';
 import { 
   AlertTriangle, Phone, X, Camera, ShieldAlert, Sparkles, Check, 
-  ExternalLink, Edit3, HeartPulse, User, QrCode, AlertCircle, RefreshCw
+  ExternalLink, Edit3, HeartPulse, User, QrCode, AlertCircle, RefreshCw,
+  Pin, Smartphone
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Html5Qrcode } from 'html5-qrcode';
 import { QRCodeSVG } from 'qrcode.react';
+import { pinEmergencyToLockScreen } from '../../services/lockScreenNotification';
+import { LockScreenGuideModal } from './LockScreenGuideModal';
 
 interface QuickMedicalIdModalProps {
   isOpen: boolean;
@@ -49,8 +52,21 @@ export const QuickMedicalIdModal: React.FC<QuickMedicalIdModalProps> = ({ isOpen
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [showLockScreenGuide, setShowLockScreenGuide] = useState(false);
+  const [pinMessage, setPinMessage] = useState<string | null>(null);
 
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
+
+  const handlePinLockScreen = async () => {
+    setPinMessage('Pinning alert to lock screen...');
+    const res = await pinEmergencyToLockScreen({
+      name: profile?.name || user?.fullName || 'Patient',
+      bloodGroup: profile?.bloodGroup || 'O+',
+      pandemicNote: profile?.pandemicNote || ''
+    });
+    setPinMessage(res.message);
+    setTimeout(() => setPinMessage(null), 4000);
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -353,6 +369,34 @@ export const QuickMedicalIdModal: React.FC<QuickMedicalIdModalProps> = ({ isOpen
                 <p className="text-[11px] text-gray-500 dark:text-gray-400 font-medium leading-tight">
                   Scan with any phone camera to view full medical history, allergies & emergency contacts
                 </p>
+
+                {/* 📌 LOCK SCREEN DIRECT INTEGRATION */}
+                <div className="pt-2 border-t border-gray-100 dark:border-slate-700/80 space-y-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <button
+                      onClick={handlePinLockScreen}
+                      className="py-2.5 px-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-black shadow flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer"
+                    >
+                      <Pin size={14} />
+                      <span>📌 Pin to Lock Screen</span>
+                    </button>
+
+                    <button
+                      onClick={() => setShowLockScreenGuide(true)}
+                      className="py-2.5 px-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700/80 text-gray-800 dark:text-gray-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer"
+                    >
+                      <Smartphone size={14} />
+                      <span>Lock Screen Setup Guide</span>
+                    </button>
+                  </div>
+
+                  {pinMessage && (
+                    <div className="p-2 bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 rounded-xl text-[11px] font-bold animate-in fade-in flex items-center justify-center gap-1.5">
+                      <Check size={14} className="text-emerald-600" />
+                      <span>{pinMessage}</span>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* ⭐ HIGHLIGHTED STRANGER & PANDEMIC SAFETY NOTICE */}
@@ -559,6 +603,15 @@ export const QuickMedicalIdModal: React.FC<QuickMedicalIdModalProps> = ({ isOpen
         </div>
 
       </div>
+
+      {/* Lock Screen Setup Guide Modal */}
+      <LockScreenGuideModal
+        isOpen={showLockScreenGuide}
+        onClose={() => setShowLockScreenGuide(false)}
+        patientName={profile?.name || user?.fullName || 'Patient'}
+        bloodGroup={profile?.bloodGroup || 'O+'}
+        pandemicNote={profile?.pandemicNote || ''}
+      />
     </div>
   );
 };

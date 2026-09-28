@@ -117,8 +117,12 @@ self.addEventListener('notificationclick', (event) => {
       targetUrl = `/emergency/sos?alertId=${data.alertId}`;
       break;
 
+    case 'EMERGENCY_PIN':
+      targetUrl = data.url || '/emergency/id';
+      break;
+
     default:
-      targetUrl = '/';
+      targetUrl = data.url || '/';
       break;
   }
 
