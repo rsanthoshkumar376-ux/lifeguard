@@ -8,7 +8,7 @@ export interface VersionInfo {
 
 const LOCAL_VERSION_KEY = 'lifeguard_app_version';
 const LOCAL_BUILD_TIME_KEY = 'lifeguard_app_build_time';
-export const CURRENT_APP_VERSION = '1.1.0';
+export const CURRENT_APP_VERSION = '1.2.0';
 
 type UpdateCallback = (info: { hasUpdate: boolean; newVersion?: string; changelog?: string[] }) => void;
 const listeners = new Set<UpdateCallback>();
@@ -139,17 +139,22 @@ export const triggerAppUpdate = async () => {
 if (typeof window !== 'undefined') {
   // Store initial baseline if not present
   if (!localStorage.getItem(LOCAL_VERSION_KEY)) {
-    localStorage.setItem(LOCAL_VERSION_KEY, CURRENT_APP_VERSION);
+    localStorage.setItem(LOCAL_VERSION_KEY, '1.1.0');
     localStorage.setItem(LOCAL_BUILD_TIME_KEY, '1727515800000');
   }
 
-  // Check 5 seconds after load
+  // Check quickly after load
   setTimeout(() => {
     checkForAppUpdate();
-  }, 5000);
+  }, 1000);
 
   // Check when user returns to app/tab
   window.addEventListener('focus', () => {
     checkForAppUpdate();
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      checkForAppUpdate();
+    }
   });
 }

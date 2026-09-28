@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Bell, HeartPulse, Droplet, Users, Hospital, Droplets, Activity, Settings, PhoneCall, LogIn, Download, Smartphone, X, Globe, Sparkles, Moon, Sun, Bot, Camera } from 'lucide-react';
+import { Bell, HeartPulse, Droplet, Users, Hospital, Droplets, Activity, Settings, PhoneCall, LogIn, Download, Smartphone, X, Globe, Sparkles, Moon, Sun, Bot, Camera, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
@@ -8,6 +8,7 @@ import AiReportModal from '../components/medical/AiReportModal';
 import LanguageModal from '../components/common/LanguageModal';
 import QuickMedicalIdModal from '../components/medical/QuickMedicalIdModal';
 import { getMedicalProfile } from '../services/medicalProfile';
+import { subscribeToUpdates, triggerAppUpdate, checkForAppUpdate } from '../services/updateService';
 
 const Home: React.FC = () => {
   const { user } = useAuth();
@@ -21,6 +22,8 @@ const Home: React.FC = () => {
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
   const [isQuickMedicalIdOpen, setIsQuickMedicalIdOpen] = useState(false);
   const [userNotePreview, setUserNotePreview] = useState<string>('');
+  const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [updateVersion, setUpdateVersion] = useState('');
 
   const loadNote = async () => {
     try {
@@ -65,9 +68,17 @@ const Home: React.FC = () => {
     window.addEventListener('beforeinstallprompt', handleBeforeInstall);
     window.addEventListener('lifeguard:installable', handleInstallable);
 
+    // Subscribe to in-app update events
+    const unsubUpdates = subscribeToUpdates((info) => {
+      setUpdateAvailable(info.hasUpdate);
+      if (info.newVersion) setUpdateVersion(info.newVersion);
+    });
+    checkForAppUpdate();
+
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
       window.removeEventListener('lifeguard:installable', handleInstallable);
+      unsubUpdates();
     };
   }, [user]);
 
@@ -166,6 +177,25 @@ const Home: React.FC = () => {
           )}
         </div>
       </header>
+
+      {/* Real-time App Update Notification Banner */}
+      {updateAvailable && (
+        <div className="bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 text-white px-3.5 py-2.5 shadow-lg flex items-center justify-between animate-in slide-in-from-top-2 border-b border-white/20">
+          <div className="flex items-center gap-2 min-w-0 pr-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-300 animate-ping shrink-0"></span>
+            <p className="text-xs font-bold truncate">
+              Update Available (v{updateVersion || '1.2.0'}) with new design fixes!
+            </p>
+          </div>
+          <button
+            onClick={() => triggerAppUpdate()}
+            className="px-3 py-1 bg-white hover:bg-amber-50 text-red-600 rounded-lg text-xs font-black shadow flex items-center gap-1 active:scale-95 transition-all shrink-0 cursor-pointer"
+          >
+            <RefreshCw size={12} />
+            Update Now
+          </button>
+        </div>
+      )}
 
       {/* Install / Download App Banner */}
       {!isInstalled && !bannerDismissed && (

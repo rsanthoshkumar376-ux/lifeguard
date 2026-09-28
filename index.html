@@ -35,16 +35,36 @@
           window.dispatchEvent(new CustomEvent('lifeguard:installable'));
         });
 
-        // Ensure ServiceWorker is registered on load
+        // Ensure ServiceWorker is registered on load and checks for updates immediately
         if ('serviceWorker' in navigator) {
+          var isRefreshing = false;
+          navigator.serviceWorker.addEventListener('controllerchange', function() {
+            if (!isRefreshing) {
+              isRefreshing = true;
+              console.log('🔄 LifeGuard new version activated, reloading...');
+              window.location.reload();
+            }
+          });
+
           window.addEventListener('load', function() {
             navigator.serviceWorker.register('/sw.js', { scope: '/' })
               .then(function(reg) {
                 console.log('✅ LifeGuard ServiceWorker active:', reg.scope);
+                // Force check for newest version on every visit
+                reg.update().catch(function() {});
               })
               .catch(function(err) {
                 console.warn('ServiceWorker fallback:', err);
               });
+          });
+
+          // Check for update when user reopens or returns to the app tab
+          document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible') {
+              navigator.serviceWorker.getRegistration().then(function(reg) {
+                if (reg) reg.update().catch(function() {});
+              });
+            }
           });
         }
       })();
