@@ -1,17 +1,39 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, User, Shield, Globe, Moon, Sun, Info, Trash2, LogOut, ChevronRight, Check, RotateCcw } from 'lucide-react';
+import { ArrowLeft, User, Shield, Globe, Moon, Sun, Info, Trash2, LogOut, ChevronRight, Check, RotateCcw, RefreshCw, Sparkles } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { performFullAppReset } from '../../utils/resetApp';
 import LanguageModal, { LANGUAGES } from '../../components/common/LanguageModal';
+import { checkForAppUpdate, triggerAppUpdate, CURRENT_APP_VERSION } from '../../services/updateService';
 
 const SettingsPage: React.FC = () => {
   const { logout } = useAuth() as any;
   const { i18n } = useTranslation();
   const { theme, toggleTheme, isDark } = useTheme();
   const [isLangModalOpen, setIsLangModalOpen] = useState(false);
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
+  const [updateStatus, setUpdateStatus] = useState<'idle' | 'latest' | 'available'>('idle');
+  const [availableVersion, setAvailableVersion] = useState<string>('');
+
+  const handleCheckUpdates = async () => {
+    setCheckingUpdate(true);
+    setUpdateStatus('idle');
+    try {
+      const res = await checkForAppUpdate();
+      if (res.hasUpdate) {
+        setUpdateStatus('available');
+        setAvailableVersion(res.latestVersion);
+      } else {
+        setUpdateStatus('latest');
+      }
+    } catch {
+      setUpdateStatus('latest');
+    } finally {
+      setCheckingUpdate(false);
+    }
+  };
 
   const activeLangCode = i18n.language ? i18n.language.split('-')[0] : 'en';
   const currentLangObj = LANGUAGES.find(l => l.code === activeLangCode) || LANGUAGES[0];
@@ -139,10 +161,45 @@ const SettingsPage: React.FC = () => {
           <div className="bg-white border-t border-b border-gray-200">
              <SettingItem icon={Info} title="Terms of Service" />
              <SettingItem icon={Info} title="Privacy Policy" />
-             <div className="p-4 bg-white border-b border-gray-100 text-sm text-gray-500 flex justify-between">
-                <span>App Version</span>
-                <span className="font-semibold text-gray-700">1.0.0</span>
+             <div className="p-4 bg-white border-b border-gray-100 text-sm text-gray-500 flex justify-between items-center">
+                <div>
+                   <span className="block font-medium text-gray-900">App Version</span>
+                   <span className="text-xs text-gray-400">PWA Build v{CURRENT_APP_VERSION}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                   <button
+                     onClick={handleCheckUpdates}
+                     disabled={checkingUpdate}
+                     className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold rounded-lg flex items-center gap-1.5 active:scale-95 transition-all disabled:opacity-50"
+                   >
+                     <RefreshCw size={13} className={checkingUpdate ? "animate-spin text-blue-600" : ""} />
+                     {checkingUpdate ? "Checking..." : "Check for Updates"}
+                   </button>
+                </div>
              </div>
+
+             {/* Update Status Feedback */}
+             {updateStatus === 'latest' && (
+               <div className="p-3 bg-emerald-50 text-emerald-800 text-xs font-bold border-b border-gray-100 flex items-center gap-2 animate-in fade-in">
+                 <Check size={16} className="text-emerald-600 shrink-0" />
+                 <span>LifeGuard is up to date! (v{CURRENT_APP_VERSION})</span>
+               </div>
+             )}
+
+             {updateStatus === 'available' && (
+               <div className="p-3.5 bg-gradient-to-r from-red-600 to-rose-600 text-white text-xs font-bold border-b border-gray-100 flex items-center justify-between gap-2 animate-in fade-in">
+                 <div className="flex items-center gap-2">
+                   <Sparkles size={16} className="text-amber-300 animate-pulse shrink-0" />
+                   <span>New version v{availableVersion || '1.1.0'} available!</span>
+                 </div>
+                 <button
+                   onClick={() => triggerAppUpdate()}
+                   className="px-3 py-1 bg-white text-red-600 hover:bg-amber-50 rounded-lg text-xs font-black shadow active:scale-95 transition-all"
+                 >
+                   Update Now
+                 </button>
+               </div>
+             )}
           </div>
         </div>
 

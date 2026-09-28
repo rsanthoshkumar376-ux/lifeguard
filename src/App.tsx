@@ -31,6 +31,8 @@ const HospitalVerificationPage = React.lazy(() => import('./pages/admin/Hospital
 const UserManagementPage = React.lazy(() => import('./pages/admin/UserManagementPage'));
 const RequestMonitoringPage = React.lazy(() => import('./pages/admin/RequestMonitoringPage'));
 
+import AppUpdatePrompt from './components/common/AppUpdatePrompt';
+
 const NotFound = () => (
   <div className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center">
     <div className="w-16 h-16 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-bold text-2xl mx-auto mb-4">
@@ -46,17 +48,19 @@ const NotFound = () => (
 
 const App: React.FC = () => {
   return (
-    <React.Suspense
-      fallback={
-        <div className="flex items-center justify-center min-h-screen bg-slate-100">
-          <div className="text-center p-6 bg-white rounded-2xl shadow-md">
-            <div className="w-10 h-10 border-4 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-            <p className="text-sm font-bold text-gray-700">Loading LifeGuard...</p>
+    <>
+      <AppUpdatePrompt />
+      <React.Suspense
+        fallback={
+          <div className="flex items-center justify-center min-h-screen bg-slate-100">
+            <div className="text-center p-6 bg-white rounded-2xl shadow-md">
+              <div className="w-10 h-10 border-4 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+              <p className="text-sm font-bold text-gray-700">Loading LifeGuard...</p>
+            </div>
           </div>
-        </div>
-      }
-    >
-      <Routes>
+        }
+      >
+        <Routes>
         {/* Main App Layout with BottomNav */}
         <Route element={<AppLayout />}>
           <Route path="/" element={<Home />} />
@@ -127,6 +131,7 @@ const App: React.FC = () => {
         <Route path="*" element={<NotFound />} />
       </Routes>
     </React.Suspense>
+    </>
   );
 };
 
