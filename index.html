@@ -25,6 +25,28 @@
             document.documentElement.classList.remove('dark');
           }
         } catch(e) {}
+
+        // Global early capture for Android Chrome PWA install prompt
+        window.deferredInstallPrompt = null;
+        window.addEventListener('beforeinstallprompt', function(e) {
+          e.preventDefault();
+          window.deferredInstallPrompt = e;
+          console.log('✅ Captured beforeinstallprompt in index.html');
+          window.dispatchEvent(new CustomEvent('lifeguard:installable'));
+        });
+
+        // Ensure ServiceWorker is registered on load
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', function() {
+            navigator.serviceWorker.register('/sw.js', { scope: '/' })
+              .then(function(reg) {
+                console.log('✅ LifeGuard ServiceWorker active:', reg.scope);
+              })
+              .catch(function(err) {
+                console.warn('ServiceWorker fallback:', err);
+              });
+          });
+        }
       })();
     </script>
     <title>LifeGuard</title>

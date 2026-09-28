@@ -44,23 +44,48 @@ const Home: React.FC = () => {
       setIsInstalled(true);
     }
 
-    const handleBeforeInstall = (e: Event) => {
+    // Check if prompt was globally captured in index.html
+    if ((window as any).deferredInstallPrompt) {
+      setInstallPrompt((window as any).deferredInstallPrompt);
+    }
+
+    const handleBeforeInstall = (e: any) => {
       e.preventDefault();
+      (window as any).deferredInstallPrompt = e;
       setInstallPrompt(e);
+      console.log('✅ LifeGuard install prompt captured in Home component');
+    };
+
+    const handleInstallable = () => {
+      if ((window as any).deferredInstallPrompt) {
+        setInstallPrompt((window as any).deferredInstallPrompt);
+      }
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstall);
-    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+    window.addEventListener('lifeguard:installable', handleInstallable);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+      window.removeEventListener('lifeguard:installable', handleInstallable);
+    };
   }, [user]);
 
   const handleInstallApp = async () => {
-    if (installPrompt) {
-      installPrompt.prompt();
-      const choiceResult = await installPrompt.userChoice;
-      if (choiceResult.outcome === 'accepted') {
-        setIsInstalled(true);
+    const promptEvent = installPrompt || (window as any).deferredInstallPrompt;
+    if (promptEvent) {
+      try {
+        promptEvent.prompt();
+        const choiceResult = await promptEvent.userChoice;
+        if (choiceResult && choiceResult.outcome === 'accepted') {
+          setIsInstalled(true);
+        }
+        setInstallPrompt(null);
+        (window as any).deferredInstallPrompt = null;
+      } catch (err) {
+        console.warn("Direct install prompt trigger:", err);
+        setShowInstallGuide(true);
       }
-      setInstallPrompt(null);
     } else {
       setShowInstallGuide(true);
     }
@@ -161,26 +186,84 @@ const Home: React.FC = () => {
 
       {/* Install Guide Modal */}
       {showInstallGuide && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 animate-in fade-in">
-          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4">
-            <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mx-auto">
-              <Smartphone size={28} />
-            </div>
-            <h3 className="text-lg font-bold text-center text-gray-900">How to Install LifeGuard</h3>
-            <div className="text-sm text-gray-600 space-y-3 bg-gray-50 p-4 rounded-2xl border border-gray-100">
-              <p className="font-semibold text-gray-800">📱 Android (Chrome):</p>
-              <p>Tap the <strong>three dots (⋮)</strong> at the top right of your browser and select <strong>"Install app"</strong> or <strong>"Add to Home screen"</strong>.</p>
-              
-              <div className="border-t border-gray-200 pt-2"></div>
-              
-              <p className="font-semibold text-gray-800">🍎 iPhone / iPad (Safari):</p>
-              <p>Tap the <strong>Share button (square with arrow ↑)</strong> at the bottom of Safari, then scroll down and tap <strong>"Add to Home Screen"</strong>.</p>
-            </div>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4 border border-blue-500/20 relative">
             <button
               onClick={() => setShowInstallGuide(false)}
-              className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 active:scale-95 transition-all"
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-white p-1 rounded-full"
             >
-              Got it!
+              <X size={20} />
+            </button>
+
+            <div className="w-14 h-14 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-blue-500/30">
+              <Download size={28} className="animate-bounce" />
+            </div>
+
+            <div className="text-center">
+              <h3 className="text-lg font-black text-gray-900 dark:text-white">Install LifeGuard Directly</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Add to your phone for instant 1-tap offline emergency access
+              </p>
+            </div>
+
+            {/* Direct 1-Tap Native Install Button */}
+            <button
+              onClick={async () => {
+                const promptEvent = installPrompt || (window as any).deferredInstallPrompt;
+                if (promptEvent) {
+                  try {
+                    promptEvent.prompt();
+                    const choice = await promptEvent.userChoice;
+                    if (choice?.outcome === 'accepted') {
+                      setIsInstalled(true);
+                      setShowInstallGuide(false);
+                    }
+                  } catch (e) {
+                    console.error("Install prompt error:", e);
+                  }
+                } else {
+                  alert("Please tap the three dots (⋮) at top right of Chrome and select 'Install app'.");
+                }
+              }}
+              className="w-full py-3.5 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-500 hover:to-rose-500 text-white rounded-2xl font-black text-sm shadow-lg shadow-red-900/30 flex items-center justify-center gap-2 active:scale-95 transition-all"
+            >
+              <Download size={18} /> Tap Here to Install Directly
+            </button>
+
+            {/* Visual Instructions */}
+            <div className="text-xs space-y-3 bg-gray-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-gray-100 dark:border-slate-700 text-left">
+              <div className="flex items-start gap-2.5">
+                <span className="w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-600 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">1</span>
+                <div>
+                  <p className="font-bold text-gray-900 dark:text-white">In Chrome (Android):</p>
+                  <p className="text-gray-600 dark:text-gray-300 mt-0.5">
+                    Look at the <strong>top right</strong> corner and tap the <strong>three dots (⋮)</strong> menu.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2.5">
+                <span className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">2</span>
+                <div>
+                  <p className="font-bold text-gray-900 dark:text-white">Select "Install app":</p>
+                  <p className="text-gray-600 dark:text-gray-300 mt-0.5">
+                    Tap <strong>"Install app"</strong> (or <strong>"Add to Home screen"</strong>).
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-gray-200 dark:border-slate-700">
+                <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                  ✨ The LifeGuard icon will download and appear directly on your phone's home screen like any native app.
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowInstallGuide(false)}
+              className="w-full py-2.5 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 text-gray-700 dark:text-gray-300 rounded-xl font-bold text-xs active:scale-95 transition-all"
+            >
+              Close
             </button>
           </div>
         </div>
