@@ -1,11 +1,11 @@
 {
-  "version": "1.3.0",
-  "buildTime": 1727536000000,
+  "version": "1.3.1",
+  "buildTime": 1727537000000,
   "releaseDate": "2026-09-28",
   "changelog": [
-    "🔒 Phone Lock Screen Emergency Card & HD Wallpaper generator",
-    "📱 View Scannable QR Code & Notes directly without phone password or PIN",
-    "📌 1-Tap Pin Emergency Alert to Android Lock Screen",
-    "⚙️ Guide for Android native Emergency Information lockscreen button"
+    "🚨 Direct 1-Tap Emergency Icon directly displays Scannable Medical QR Code and Important Notes",
+    "📱 No passwords required - instant access for bystanders, doctors and strangers",
+    "😷 Highlighted pandemic & stranger instructions with 1-tap call 108",
+    "🧹 Cleaned up lock screen wallpaper downloads as requested"
   ]
 }
