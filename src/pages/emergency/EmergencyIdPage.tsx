@@ -119,10 +119,32 @@ const EmergencyIdPage = () => {
               )}
             </div>
 
+            {/* Stranger & Pandemic Safety Notice */}
+            {(profile.pandemicNote || "😷 PANDEMIC SAFETY NOTICE FOR STRANGERS: Please wear a mask & gloves before physical contact. Call 108 immediately. Check medical conditions below before administering CPR.") && (
+              <div className="bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-600 rounded-2xl p-4 shadow-sm text-left">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-7 h-7 rounded-xl bg-amber-500 text-white flex items-center justify-center font-black text-sm shrink-0">
+                    😷
+                  </div>
+                  <div>
+                    <h3 className="font-black text-xs text-amber-900 dark:text-amber-200 uppercase tracking-wider">
+                      NOTICE FOR STRANGERS • PANDEMIC SAFETY
+                    </h3>
+                    <p className="text-[10px] text-amber-700 dark:text-amber-400">
+                      Crucial responder instructions during public health emergency
+                    </p>
+                  </div>
+                </div>
+                <p className="text-sm font-bold text-amber-950 dark:text-amber-100 bg-white/80 dark:bg-slate-900/60 p-3 rounded-xl border border-amber-200 dark:border-amber-800/60 leading-relaxed whitespace-pre-wrap">
+                  {profile.pandemicNote || "😷 PANDEMIC SAFETY NOTICE FOR STRANGERS: Please wear a mask & gloves before physical contact. Call 108 immediately. Check medical conditions below before administering CPR."}
+                </p>
+              </div>
+            )}
+
             {profile.emergencyInstructions && (
-              <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl shadow-sm">
-                <h3 className="font-bold text-amber-900 mb-1 text-sm tracking-wide">EMERGENCY INSTRUCTIONS</h3>
-                <p className="text-amber-950 font-medium text-sm">{profile.emergencyInstructions}</p>
+              <div className="bg-blue-50 dark:bg-blue-950/40 border-l-4 border-blue-500 p-4 rounded-r-xl shadow-sm text-left">
+                <h3 className="font-bold text-blue-900 dark:text-blue-200 mb-1 text-sm tracking-wide">ADDITIONAL EMERGENCY INSTRUCTIONS</h3>
+                <p className="text-blue-950 dark:text-blue-100 font-medium text-sm">{profile.emergencyInstructions}</p>
               </div>
             )}
 

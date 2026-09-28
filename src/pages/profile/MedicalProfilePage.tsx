@@ -180,10 +180,57 @@ const MedicalProfilePage = () => {
           />
         </div>
 
+        {/* Stranger & Pandemic Safety Notice */}
+        <div className="bg-amber-50/80 border border-amber-300 rounded-2xl p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">😷</span>
+            <div>
+              <label className="block text-sm font-bold text-amber-950">
+                Notice for Strangers • Pandemic Safety Note
+              </label>
+              <p className="text-xs text-amber-800">
+                Displayed prominently when strangers or paramedics open your Medical ID during an emergency or pandemic.
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <span className="text-[11px] font-bold text-amber-900 block mb-1.5">
+              Quick 1-Tap Pandemic Presets:
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                { label: "😷 Wear Mask & Gloves Before Helping", text: "PANDEMIC PRECAUTION: Please wear a mask & gloves before assisting. Call 108 immediately. Patient is immunocompromised." },
+                { label: "🫁 Asthma (Non-Contagious) - Inhaler in Pocket", text: "ASTHMA DISTRESS (NOT CONTAGIOUS): Inhaler is in right pocket/bag. Do NOT perform mouth-to-mouth; use compression-only CPR." },
+                { label: "🛡️ High Contagion Risk - Protect Patient", text: "HIGH VIRAL RISK: Highly vulnerable patient. Please keep safe distance, sanitize hands, and notify emergency contacts immediately." },
+                { label: "🩸 Diabetic Shock - Give Sugar If Awake", text: "DIABETIC EMERGENCY: If conscious, please administer candy or fruit juice from bag. If unconscious, call 108 immediately." },
+                { label: "⚠️ Compression-Only CPR", text: "EMERGENCY: Do not perform mouth-to-mouth. Use chest compressions only. Call 108 immediately." }
+              ].map((preset, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => handleChange('pandemicNote', preset.text)}
+                  className="text-[11px] bg-white border border-amber-300 hover:bg-amber-100 text-amber-950 px-2 py-1 rounded-lg font-semibold shadow-sm active:scale-95 transition-all text-left"
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <textarea 
+            rows={3}
+            className="w-full bg-white text-gray-900 font-medium placeholder:text-gray-400 border border-amber-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none text-sm" 
+            value={profile.pandemicNote || ''} 
+            onChange={(e) => handleChange('pandemicNote', e.target.value)} 
+            placeholder="e.g. Please wear mask and gloves before physical contact. Inhaler in right bag pocket. Call 108 immediately."
+          />
+        </div>
+
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1">Emergency Instructions for Responders</label>
           <textarea 
-            rows={3}
+            rows={2}
             className="w-full bg-white text-gray-900 font-medium placeholder:text-gray-400 border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" 
             value={profile.emergencyInstructions || ''} 
             onChange={(e) => handleChange('emergencyInstructions', e.target.value)} 

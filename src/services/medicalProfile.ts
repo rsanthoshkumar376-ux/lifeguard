@@ -28,6 +28,7 @@ export interface MedicalProfile {
   conditions?: Record<string, any>;
   allergies?: string[];
   emergencyInstructions?: string;
+  pandemicNote?: string; // Critical note to strangers & pandemic precautions
   visibility?: Record<string, boolean>;
   organDonor?: boolean;
 }

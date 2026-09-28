@@ -43,6 +43,8 @@ export interface MedicalProfile {
   other: string;
   allergies: string[];
   medications: Medication[];
+  emergencyInstructions?: string;
+  pandemicNote?: string;
 }
 
 export interface GeoPoint {

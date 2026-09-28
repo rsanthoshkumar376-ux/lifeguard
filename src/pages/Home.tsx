@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Bell, HeartPulse, Droplet, Users, Hospital, Droplets, Activity, Settings, PhoneCall, LogIn, Download, Smartphone, X, Globe, Sparkles, Moon, Sun, Bot } from 'lucide-react';
+import { Bell, HeartPulse, Droplet, Users, Hospital, Droplets, Activity, Settings, PhoneCall, LogIn, Download, Smartphone, X, Globe, Sparkles, Moon, Sun, Bot, Camera } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import AiReportModal from '../components/medical/AiReportModal';
 import LanguageModal from '../components/common/LanguageModal';
+import QuickMedicalIdModal from '../components/medical/QuickMedicalIdModal';
+import { getMedicalProfile } from '../services/medicalProfile';
 
 const Home: React.FC = () => {
   const { user } = useAuth();
@@ -17,8 +19,26 @@ const Home: React.FC = () => {
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
+  const [isQuickMedicalIdOpen, setIsQuickMedicalIdOpen] = useState(false);
+  const [userNotePreview, setUserNotePreview] = useState<string>('');
+
+  const loadNote = async () => {
+    try {
+      if (user) {
+        const p = await getMedicalProfile(user.uid);
+        if (p?.pandemicNote) setUserNotePreview(p.pandemicNote);
+      } else {
+        const local = localStorage.getItem('guest_medical_profile') || localStorage.getItem('lifeguard_medical_profile');
+        if (local) {
+          const parsed = JSON.parse(local);
+          if (parsed.pandemicNote) setUserNotePreview(parsed.pandemicNote);
+        }
+      }
+    } catch (e) {}
+  };
 
   useEffect(() => {
+    loadNote();
     // Check if running in standalone mode (already installed)
     if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
       setIsInstalled(true);
@@ -31,7 +51,7 @@ const Home: React.FC = () => {
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstall);
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
-  }, []);
+  }, [user]);
 
   const handleInstallApp = async () => {
     if (installPrompt) {
@@ -178,6 +198,36 @@ const Home: React.FC = () => {
       </div>
 
       <div className="p-4 space-y-4">
+        {/* 📷 CAMERA MARK: Quick Medical ID & Pandemic Note for Strangers */}
+        <div 
+          onClick={() => setIsQuickMedicalIdOpen(true)}
+          className="bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 text-white p-3.5 rounded-2xl shadow-lg flex items-center justify-between cursor-pointer active:scale-[0.98] transition-transform border border-red-300/40 relative overflow-hidden group"
+        >
+          <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-white/10 rounded-full blur-xl group-hover:scale-125 transition-transform pointer-events-none"></div>
+
+          <div className="flex items-center space-x-3 overflow-hidden pr-2">
+            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0 border border-white/30 shadow-inner">
+              <Camera size={22} className="text-white animate-pulse" />
+            </div>
+            <div className="overflow-hidden">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="bg-amber-400 text-amber-950 font-black text-[9px] uppercase px-1.5 py-0.5 rounded tracking-wider shadow-sm flex items-center gap-1">
+                  <span>📷</span> CAMERA MARK
+                </span>
+                <p className="text-xs font-black tracking-tight text-white">Medical ID & Pandemic Note</p>
+              </div>
+              <p className="text-[11px] text-amber-100 font-medium truncate mt-0.5">
+                {userNotePreview || "1-Tap view for strangers • Pandemic instructions & 108 calling"}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1 shrink-0 bg-white text-red-600 px-3 py-2 rounded-xl text-xs font-black shadow-md hover:bg-amber-50 active:scale-95 transition-all">
+            <span>Open</span>
+            <span className="text-[10px]">▶</span>
+          </div>
+        </div>
+
         {/* Main Action Grid */}
         <div className="grid grid-cols-2 gap-4">
           <Link to="/emergency/sos" className="col-span-2 bg-gradient-to-r from-red-600 to-red-700 text-white h-24 rounded-2xl flex flex-col items-center justify-center shadow-lg active:scale-95 transition-transform">
@@ -274,6 +324,38 @@ const Home: React.FC = () => {
             </a>
         </div>
       </div>
+
+      {/* 📷 Mobile Floating Camera Mark Shortcut (Lockscreen Camera style) */}
+      <aside aria-label="Quick Emergency Medical ID Trigger" className="fixed bottom-20 right-4 z-40 flex flex-col items-end">
+        <button
+          onClick={() => setIsQuickMedicalIdOpen(true)}
+          className="group relative bg-gradient-to-tr from-red-600 via-rose-600 to-amber-500 text-white w-14 h-14 rounded-full shadow-2xl border-2 border-white ring-4 ring-red-500/25 active:scale-90 hover:scale-105 transition-all flex items-center justify-center cursor-pointer"
+          title="Open Medical ID & Pandemic Note for Strangers"
+          aria-label="Open Medical ID and Pandemic Safety Note"
+        >
+          <div className="relative flex items-center justify-center">
+            <Camera size={26} className="text-white drop-shadow" />
+            <span className="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-300 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-amber-400 text-[8px] font-black items-center justify-center text-amber-950">!</span>
+            </span>
+          </div>
+
+          {/* Quick Indicator Badge */}
+          <span className="absolute right-16 bg-slate-900/90 text-white text-[11px] font-black px-2.5 py-1 rounded-full whitespace-nowrap shadow-xl border border-slate-700 pointer-events-none opacity-90 group-hover:opacity-100 flex items-center gap-1.5 backdrop-blur-sm transition-opacity">
+            <span className="text-amber-400">🚨</span> Medical ID
+          </span>
+        </button>
+      </aside>
+
+      {/* 🪪 Quick Medical ID & Pandemic Notice Modal */}
+      <QuickMedicalIdModal 
+        isOpen={isQuickMedicalIdOpen} 
+        onClose={() => { 
+          setIsQuickMedicalIdOpen(false); 
+          loadNote(); 
+        }} 
+      />
 
       {/* AI Report Scanner Modal */}
       <AiReportModal isOpen={isAiModalOpen} onClose={() => setIsAiModalOpen(false)} />

@@ -81,10 +81,26 @@ const EmergencyViewPage = () => {
           )}
         </div>
 
+        {/* Stranger & Pandemic Notice */}
+        {(profile?.pandemicNote || "😷 PANDEMIC SAFETY NOTICE FOR STRANGERS: Please wear a mask & sanitize before touching. Call 108 immediately.") && (
+          <div className="bg-amber-50 border-2 border-amber-400 p-4 rounded-2xl shadow-sm text-left">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xl">😷</span>
+              <div>
+                <h3 className="font-bold text-amber-900 text-sm uppercase tracking-wide">NOTICE FOR STRANGERS • PANDEMIC SAFETY</h3>
+                <p className="text-xs text-amber-700">Precautionary instructions for first responder safety</p>
+              </div>
+            </div>
+            <p className="text-amber-950 font-bold text-sm bg-white/80 p-3 rounded-xl border border-amber-200 whitespace-pre-wrap">
+              {profile?.pandemicNote || "😷 PANDEMIC SAFETY NOTICE FOR STRANGERS: Please wear a mask & sanitize before touching. Call 108 immediately."}
+            </p>
+          </div>
+        )}
+
         {profile?.visibility?.emergencyInstructions && profile.emergencyInstructions && (
-          <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl shadow-sm">
-            <h3 className="font-bold text-amber-800 mb-1 text-lg">EMERGENCY INSTRUCTIONS</h3>
-            <p className="text-amber-900 font-medium whitespace-pre-wrap">{profile.emergencyInstructions}</p>
+          <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-xl shadow-sm text-left">
+            <h3 className="font-bold text-blue-800 mb-1 text-base">EMERGENCY INSTRUCTIONS</h3>
+            <p className="text-blue-900 font-medium whitespace-pre-wrap text-sm">{profile.emergencyInstructions}</p>
           </div>
         )}
 
