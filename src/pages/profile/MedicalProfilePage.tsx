@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getMedicalProfile, saveMedicalProfile, MedicalProfile } from '../../services/medicalProfile';
-import { Save, AlertCircle, Check, Sparkles } from 'lucide-react';
+import { Save, AlertCircle, Check, Sparkles, Activity } from 'lucide-react';
 import AiReportModal from '../../components/medical/AiReportModal';
 import DobSelector from '../../components/ui/DobSelector';
 
@@ -113,6 +113,25 @@ const MedicalProfilePage = () => {
         >
           Scan Report
         </button>
+      </div>
+
+      {/* Complete Digital Health Records Module Link */}
+      <div className="mb-4 bg-gradient-to-r from-indigo-700 to-purple-800 text-white p-4 rounded-2xl shadow-md flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+            <Activity size={20} className="text-pink-300" />
+          </div>
+          <div>
+            <p className="font-black text-sm">Digital Health Records & Vitals</p>
+            <p className="text-xs text-indigo-100">Prescriptions, surgeries, lab charts & doctor summaries</p>
+          </div>
+        </div>
+        <a
+          href="/health-records"
+          className="bg-white text-indigo-900 px-3.5 py-2 rounded-xl text-xs font-black shadow hover:bg-indigo-50 active:scale-95 transition-transform shrink-0 ml-3"
+        >
+          Open Records
+        </a>
       </div>
       {/* Personal Info */}
       <section className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-4 space-y-4">

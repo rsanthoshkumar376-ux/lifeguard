@@ -1,13 +1,15 @@
 {
-  "version": "1.9.0",
-  "buildTime": 1732216000000,
+  "version": "1.10.0",
+  "buildTime": 1732219000000,
   "releaseDate": "2026-11-21",
   "changelog": [
-    "🩸 Smart Blood Donor Eligibility Tracker (configurable component-specific intervals per Indian NBTC guidelines)",
-    "🎖️ Civic Donor Achievement & Milestone System with verified appreciation certificates",
-    "📊 Lifesaving Impact Dashboard tracking verified donations, volume contributed, and estimated lives impacted",
-    "⭐ Rare Blood Group Standby Network (O-, AB-, B-, A-, and Bombay Blood Phenotype emergency alerts)",
-    "🛡️ Donor Safety Guardrail preventing premature or unsafe excessive donations",
-    "🔔 Smart Notification Hub (eligibility recovery alerts, blood donation camps, appointment reminders)"
+    "📁 Complete Digital Health Records Module (/health-records) with EHR / PHR capabilities",
+    "🩺 Personal Medical History tracking: existing conditions, previous surgeries, allergies, family history, and clinical notes",
+    "📑 Secure Medical Documents Archive: PDF and image upload for lab reports, prescriptions, discharge slips, and scans with magic-byte validation",
+    "⏳ Chronological Health Timeline: consultations, lab tests, surgeries, medication titrations, and hospital visits",
+    "💓 Continuous Health Vitals: manual logging of BP, Pulse, SpO2, Temperature, and Blood Glucose with AHA/clinical bands",
+    "📈 Interactive Empirical Vitals Charts: historical trend plots with standard clinical reference bands and zero inferencing",
+    "📄 Printable Doctor Consultation Summary: physician-ready PDF export with full clinical dossier and signature block",
+    "🔐 Strict Privacy & Caregiver Access Management: cryptographic client-side encryption and authorized caregiver permissions"
   ]
 }

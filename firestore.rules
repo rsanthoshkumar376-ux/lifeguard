@@ -59,6 +59,46 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------
+    // DIGITAL HEALTH RECORDS & CAREGIVERS
+    // ---------------------------------------------------------
+
+    match /users/{userId}/healthRecords/{docId} {
+      // Allow read if owner or authorized caregiver with active grant or registered in caregivers
+      allow read: if isOwner(userId) || (
+        isAuthenticated() && (
+          (
+            exists(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)) && 
+            (
+              !('status' in get(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)).data) || 
+              get(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)).data.status in ['active', 'registered']
+            )
+          ) ||
+          (
+            resource != null && 
+            'caregivers' in resource.data && 
+            resource.data.caregivers is list && 
+            request.auth.uid in resource.data.caregivers
+          )
+        )
+      );
+
+      // Allow write if owner or active caregiver with manage_records role
+      allow write: if isOwner(userId) || (
+        isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)) && 
+        get(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)).data.role == 'manage_records' && 
+        get(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)).data.status == 'active'
+      );
+    }
+
+    match /users/{userId}/caregivers/{caregiverId} {
+      // Allow read if owner or the caregiver themselves
+      allow read: if isOwner(userId) || (isAuthenticated() && request.auth.uid == caregiverId);
+      // Only the patient/owner can manage their caregivers
+      allow write: if isOwner(userId);
+    }
+
+    // ---------------------------------------------------------
     // DONORS
     // ---------------------------------------------------------
     
