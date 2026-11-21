@@ -1,10 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Bell, Droplet, ShieldAlert, CheckCheck, Trash2, CheckCircle, Info } from 'lucide-react';
+import { 
+  ArrowLeft, 
+  Bell, 
+  Droplet, 
+  ShieldAlert, 
+  CheckCheck, 
+  Trash2, 
+  CheckCircle, 
+  Info,
+  Calendar,
+  Sparkles,
+  Heart,
+  Clock,
+  Building2
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-interface AppNotification {
+export interface AppNotification {
   id: string;
-  type: 'emergency' | 'blood' | 'system';
+  type: 'emergency' | 'blood' | 'eligibility' | 'camp' | 'appointment' | 'system';
   title: string;
   message: string;
   timestamp: string;
@@ -14,32 +28,60 @@ interface AppNotification {
 
 const DEFAULT_NOTIFICATIONS: AppNotification[] = [
   {
-    id: 'n1',
-    type: 'system',
-    title: 'Welcome to LifeGuard',
-    message: 'Your emergency assistance network is active. Keep your medical profile updated.',
-    timestamp: 'Just now',
+    id: 'n_elig_01',
+    type: 'eligibility',
+    title: '🩸 Physiological Recovery Complete',
+    message: 'Your 90-day rest interval has elapsed. You are now potentially eligible for voluntary Whole Blood donation! Remember: Final eligibility strictly requires on-site medical screening.',
+    timestamp: 'Today, 09:30 AM',
     read: false,
-    link: '/profile'
+    link: '/blood/donor-profile'
   },
   {
-    id: 'n2',
+    id: 'n_camp_02',
+    type: 'camp',
+    title: '🏥 Mega Voluntary Blood Donation Camp',
+    message: 'Indian Red Cross Society & Rotary Club are organizing a civic voluntary blood drive this Saturday at Egmore Hall, 9 AM - 4 PM. All voluntary donors welcome.',
+    timestamp: 'Yesterday',
+    read: false,
+    link: '/nearby-hospitals'
+  },
+  {
+    id: 'n_rare_03',
     type: 'emergency',
-    title: 'Emergency SOS Protocol Ready',
-    message: 'In an emergency, 1-tap SOS alerts nearby verified hospitals and registered emergency contacts.',
-    timestamp: '1 hour ago',
+    title: '🚨 Rare Blood Group Standby Alert (O-)',
+    message: 'Apollo Speciality Hospital has an active polytrauma requisition for O- Packed Red Blood Cells within 5 km of your location.',
+    timestamp: '2 hours ago',
+    read: false,
+    link: '/blood/req_emergency_01'
+  },
+  {
+    id: 'n_appt_04',
+    type: 'appointment',
+    title: '⏱️ Scheduled Transfusion Center Appointment',
+    message: 'Reminder: Your pre-donation screening appointment is confirmed at Government General Hospital Blood Bank for tomorrow at 10:30 AM.',
+    timestamp: '3 days ago',
     read: true,
-    link: '/sos'
+    link: '/hospital/dashboard'
+  },
+  {
+    id: 'n_sys_05',
+    type: 'system',
+    title: 'LifeGuard Smart Emergency System Ready',
+    message: 'Your emergency assistance and donor discovery network is operational. Keep your medical profile updated.',
+    timestamp: '1 week ago',
+    read: true,
+    link: '/profile'
   }
 ];
 
 const NotificationsPage: React.FC = () => {
-  const [filter, setFilter] = useState<'all' | 'emergency' | 'blood' | 'system'>('all');
+  const [filter, setFilter] = useState<'all' | 'emergency' | 'blood' | 'camp' | 'eligibility'>('all');
   const [notifications, setNotifications] = useState<AppNotification[]>(() => {
     const saved = localStorage.getItem('lifeguard_notifications');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       } catch (e) {
         // fallback
       }
@@ -61,6 +103,7 @@ const NotificationsPage: React.FC = () => {
 
   const filtered = notifications.filter(n => {
     if (filter === 'all') return true;
+    if (filter === 'blood') return n.type === 'blood' || n.type === 'eligibility' || n.type === 'camp';
     return n.type === filter;
   });
 
@@ -83,7 +126,7 @@ const NotificationsPage: React.FC = () => {
                 </span>
               )}
             </div>
-            <p className="text-xs text-gray-500">Emergency alerts and blood network updates</p>
+            <p className="text-xs text-gray-500">Eligibility reminders, blood camps & emergency alerts</p>
           </div>
         </div>
 
@@ -99,7 +142,7 @@ const NotificationsPage: React.FC = () => {
             <button
               onClick={clearAll}
               className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-              title="Clear all"
+              title="Clear all notifications"
             >
               <Trash2 size={18} />
             </button>
@@ -107,21 +150,21 @@ const NotificationsPage: React.FC = () => {
         )}
       </div>
 
-      {/* Tabs */}
-      <div className="flex bg-white border-b border-gray-200 px-4 gap-2 overflow-x-auto scrollbar-none py-2">
+      {/* Filter Tabs */}
+      <div className="flex border-b border-gray-200 bg-white px-4 pt-2 overflow-x-auto no-scrollbar shadow-xs">
         {[
-          { key: 'all', label: 'All' },
-          { key: 'emergency', label: '🚨 SOS & Emergency' },
-          { key: 'blood', label: '🩸 Blood Requests' },
-          { key: 'system', label: 'ℹ️ System' }
+          { key: 'all', label: 'All Alerts' },
+          { key: 'eligibility', label: '🩸 Eligibility' },
+          { key: 'emergency', label: '🚨 Emergency' },
+          { key: 'camp', label: '🏥 Donation Camps' }
         ].map(tab => (
           <button
             key={tab.key}
             onClick={() => setFilter(tab.key as any)}
-            className={`px-3 py-1.5 rounded-full text-xs font-bold shrink-0 transition-all ${
-              filter === tab.key
-                ? 'bg-red-600 text-white shadow-sm'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            className={`px-4 py-2.5 text-xs font-black border-b-2 transition-all whitespace-nowrap ${
+              filter === tab.key 
+                ? 'border-red-600 text-red-600' 
+                : 'border-transparent text-gray-500 hover:text-gray-800'
             }`}
           >
             {tab.label}
@@ -129,62 +172,70 @@ const NotificationsPage: React.FC = () => {
         ))}
       </div>
 
-      {/* Content */}
-      <div className="p-4 space-y-3 max-w-2xl mx-auto">
-        {filtered.length > 0 ? (
-          filtered.map(item => (
-            <div
-              key={item.id}
-              className={`p-4 rounded-2xl border transition-all ${
-                !item.read
-                  ? 'bg-white border-red-200 shadow-sm ring-1 ring-red-100'
-                  : 'bg-white/80 border-gray-100 opacity-90'
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                <div
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                    item.type === 'emergency'
-                      ? 'bg-red-100 text-red-600'
-                      : item.type === 'blood'
-                      ? 'bg-rose-100 text-rose-600'
-                      : 'bg-blue-100 text-blue-600'
-                  }`}
-                >
-                  {item.type === 'emergency' && <ShieldAlert size={20} />}
-                  {item.type === 'blood' && <Droplet size={20} />}
-                  {item.type === 'system' && <Info size={20} />}
-                </div>
-
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-gray-900">{item.title}</h3>
-                    <span className="text-[11px] text-gray-400 font-medium">{item.timestamp}</span>
-                  </div>
-                  <p className="text-xs text-gray-600 mt-1 leading-relaxed">{item.message}</p>
-
-                  {item.link && (
-                    <Link
-                      to={item.link}
-                      className="inline-block mt-2.5 text-xs font-bold text-red-600 hover:text-red-700 underline"
-                    >
-                      View Details →
-                    </Link>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))
-        ) : (
-          <div className="bg-white rounded-3xl p-8 text-center shadow-sm border border-gray-100 space-y-3 my-8">
-            <div className="w-16 h-16 bg-gray-100 text-gray-400 rounded-3xl flex items-center justify-center mx-auto">
+      <div className="p-4 max-w-xl mx-auto space-y-3">
+        {filtered.length === 0 ? (
+          <div className="bg-white rounded-3xl p-8 text-center shadow-sm border border-gray-100 space-y-3 max-w-md mx-auto my-6">
+            <div className="w-16 h-16 bg-gray-50 text-gray-400 rounded-3xl flex items-center justify-center mx-auto">
               <Bell size={28} />
             </div>
             <h3 className="font-bold text-base text-gray-900">No Notifications</h3>
-            <p className="text-xs text-gray-500 max-w-sm mx-auto leading-relaxed">
-              When hospitals request your blood type or an emergency SOS is triggered nearby, real-time alerts will appear right here.
+            <p className="text-xs text-gray-500">
+              You have no alerts matching this filter.
             </p>
           </div>
+        ) : (
+          filtered.map(notif => {
+            const isUnread = !notif.read;
+
+            return (
+              <div 
+                key={notif.id} 
+                className={`p-4 rounded-3xl border transition-all space-y-2 ${
+                  isUnread 
+                    ? 'bg-white border-red-200 shadow-sm' 
+                    : 'bg-white/70 border-gray-200'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-2.5">
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 ${
+                      notif.type === 'emergency' ? 'bg-red-100 text-red-600' :
+                      notif.type === 'eligibility' ? 'bg-emerald-100 text-emerald-700' :
+                      notif.type === 'camp' ? 'bg-blue-100 text-blue-700' :
+                      notif.type === 'appointment' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {notif.type === 'emergency' ? '🚨' :
+                       notif.type === 'eligibility' ? '🩸' :
+                       notif.type === 'camp' ? '🏥' :
+                       notif.type === 'appointment' ? '⏱️' : '🔔'}
+                    </div>
+                    <div>
+                      <h4 className="font-black text-gray-900 text-xs leading-tight">{notif.title}</h4>
+                      <p className="text-[11px] text-gray-600 font-medium mt-1 leading-relaxed">
+                        {notif.message}
+                      </p>
+                    </div>
+                  </div>
+
+                  <span className="text-[10px] text-gray-400 font-medium shrink-0">
+                    {notif.timestamp}
+                  </span>
+                </div>
+
+                {notif.link && (
+                  <div className="pt-1 flex justify-end">
+                    <Link
+                      to={notif.link}
+                      className="text-xs font-bold text-red-600 hover:underline inline-flex items-center gap-1"
+                    >
+                      <span>Take Action</span>
+                      <span>→</span>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            );
+          })
         )}
       </div>
     </div>

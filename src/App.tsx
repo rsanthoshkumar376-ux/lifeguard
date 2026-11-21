@@ -15,6 +15,7 @@ const QrCodePage = React.lazy(() => import('./pages/qr/QrCodePage'));
 const BloodRequestsPage = React.lazy(() => import('./pages/blood/BloodRequestsPage'));
 const BloodRequestDetailPage = React.lazy(() => import('./pages/blood/BloodRequestDetailPage'));
 const DonorProfilePage = React.lazy(() => import('./pages/blood/DonorProfilePage'));
+const DonorImpactPage = React.lazy(() => import('./pages/blood/DonorImpactPage'));
 const HospitalDashboard = React.lazy(() => import('./pages/hospital/HospitalDashboard'));
 const CreateRequestPage = React.lazy(() => import('./pages/hospital/CreateRequestPage'));
 const HospitalRegisterPage = React.lazy(() => import('./pages/hospital/HospitalRegisterPage'));
@@ -90,6 +91,9 @@ const App: React.FC = () => {
           {/* Donor aliases */}
           <Route path="/blood/donor-profile" element={<DonorProfilePage />} />
           <Route path="/blood-donor" element={<DonorProfilePage />} />
+          <Route path="/blood/impact" element={<DonorImpactPage />} />
+          <Route path="/blood/achievements" element={<DonorImpactPage />} />
+          <Route path="/donor/impact" element={<DonorImpactPage />} />
           
           {/* SOS Emergency aliases */}
           <Route path="/emergency/sos" element={<SosPage />} />

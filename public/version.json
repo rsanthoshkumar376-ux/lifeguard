@@ -1,13 +1,13 @@
 {
-  "version": "1.8.0",
-  "buildTime": 1732214000000,
+  "version": "1.9.0",
+  "buildTime": 1732216000000,
   "releaseDate": "2026-11-21",
   "changelog": [
-    "🏥 Complete Hospital & Blood Bank Management Network",
-    "📋 Verified Healthcare Directory with 24/7 ER availability and map links",
-    "🩸 Licensed Blood Bank Directory with real-time stock freshness indicators",
-    "📦 Blood Bank Inventory Management with batch tracking and component expiry timers",
-    "🚑 Emergency Patient Handover Protocol (SBAR summary with Medical ID, vitals, and SOS timeline)",
-    "🛡️ Statutory hospital registration workflow and 90-day periodic verification review system"
+    "🩸 Smart Blood Donor Eligibility Tracker (configurable component-specific intervals per Indian NBTC guidelines)",
+    "🎖️ Civic Donor Achievement & Milestone System with verified appreciation certificates",
+    "📊 Lifesaving Impact Dashboard tracking verified donations, volume contributed, and estimated lives impacted",
+    "⭐ Rare Blood Group Standby Network (O-, AB-, B-, A-, and Bombay Blood Phenotype emergency alerts)",
+    "🛡️ Donor Safety Guardrail preventing premature or unsafe excessive donations",
+    "🔔 Smart Notification Hub (eligibility recovery alerts, blood donation camps, appointment reminders)"
   ]
 }
