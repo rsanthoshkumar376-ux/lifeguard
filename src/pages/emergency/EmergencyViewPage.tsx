@@ -1,15 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
-import { validateEmergencyToken } from '../../services/emergencyToken';
-import { AlertTriangle, Phone, ShieldCheck, HeartPulse, User, RefreshCw, AlertCircle, ArrowLeft } from 'lucide-react';
+import { useParams, useSearchParams, Link } from 'react-router-dom';
+import { 
+  validateAndFetchPublicProfile, 
+  recordEmergencyAccessLog, 
+  EmergencyTokenData 
+} from '../../services/emergencyToken';
+import { 
+  AlertTriangle, Phone, ShieldCheck, HeartPulse, User, 
+  RefreshCw, AlertCircle, PhoneCall, WifiOff, Clock, ShieldAlert, CheckCircle2 
+} from 'lucide-react';
 
 const EmergencyViewPage: React.FC = () => {
+  const { token: routeToken } = useParams<{ token?: string }>();
   const [searchParams] = useSearchParams();
-  const token = searchParams.get('token') || 'emergency-active';
-  const [profile, setProfile] = useState<any | null>(null);
-  const [contacts, setContacts] = useState<any[]>([]);
-  const [medications, setMedications] = useState<any[]>([]);
+  const token = routeToken || searchParams.get('token') || 'emergency-active';
+
   const [loading, setLoading] = useState(true);
+  const [isRevoked, setIsRevoked] = useState(false);
+  const [isCached, setIsCached] = useState(false);
+  const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
+  const [profile, setProfile] = useState<EmergencyTokenData['publicApprovedData'] | null>(null);
 
   useEffect(() => {
     loadData(token);
@@ -18,34 +28,39 @@ const EmergencyViewPage: React.FC = () => {
   const loadData = async (tokenStr: string) => {
     try {
       setLoading(true);
-      const res: any = await validateEmergencyToken(tokenStr);
-      const d = res?.data || {};
+      const res = await validateAndFetchPublicProfile(tokenStr);
 
-      setProfile({
-        name: d.name || 'Emergency Patient',
-        bloodGroup: d.bloodGroup || 'O+',
-        allergies: d.allergies || [],
-        conditions: d.conditions || {},
-        emergencyInstructions: d.emergencyInstructions || '',
-        organDonor: d.organDonor ?? false,
-        pandemicNote: d.pandemicNote || '😷 PANDEMIC SAFETY NOTICE FOR STRANGERS: Please wear a mask & gloves before physical contact. Call 108 immediately. Patient has chronic asthma (non-contagious) — Inhaler in right pocket.',
-        visibility: d.visibility || { name: true, bloodGroup: true, emergencyInstructions: true }
-      });
-      setContacts(d.emergencyContacts || [
-        { id: '1', name: 'Primary Family Contact', phone: '+919876543210', relationship: 'Family' },
-        { id: '2', name: 'Emergency Ambulance', phone: '108', relationship: 'Emergency' }
-      ]);
-      setMedications(d.medications || []);
+      if (res.revoked) {
+        setIsRevoked(true);
+        setProfile(null);
+        return;
+      }
+
+      setIsRevoked(false);
+      setIsCached(!!res.isCached);
+      setLastSyncedAt(res.lastSyncedAt || null);
+      setProfile(res.data);
+
+      // Record access log silently in background
+      recordEmergencyAccessLog(tokenStr).catch(err => 
+        console.warn('Failed recording access log:', err)
+      );
     } catch (e: any) {
       console.warn('Fallback to local emergency profile:', e);
+      setIsCached(true);
+      setLastSyncedAt(new Date().toISOString());
       setProfile({
-        name: 'Emergency Patient',
+        preferredName: 'Emergency Patient',
         bloodGroup: 'O+',
         allergies: ['No documented allergies'],
-        emergencyInstructions: 'Call primary emergency contact and 108 immediately.',
-        pandemicNote: '😷 Wear a mask and sanitize before touching. Call 108 immediately.',
+        criticalConditions: ['Emergency assistance requested'],
+        emergencyInstructions: 'Call primary emergency contacts and 108 immediately.',
+        pandemicNote: '😷 Wear mask & sanitize hands before contact. Call 108.',
         organDonor: true,
-        visibility: { name: true, bloodGroup: true, emergencyInstructions: true }
+        primaryContacts: [
+          { name: 'Emergency Family Contact', phone: '+919876543210', relationship: 'Family' },
+          { name: 'Emergency Ambulance', phone: '108', relationship: 'Ambulance' }
+        ]
       });
     } finally {
       setLoading(false);
@@ -56,14 +71,44 @@ const EmergencyViewPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center p-4">
         <RefreshCw size={36} className="text-red-500 animate-spin mb-3" />
-        <h2 className="text-lg font-black tracking-wide">Loading Emergency Medical ID...</h2>
-        <p className="text-xs text-slate-400 mt-1">Preparing verified medical data</p>
+        <h2 className="text-lg font-black tracking-wide">Loading Verified Emergency ID...</h2>
+        <p className="text-xs text-slate-400 mt-1">Checking secure public access token</p>
+      </div>
+    );
+  }
+
+  // Revoked Token State
+  if (isRevoked) {
+    return (
+      <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-16 h-16 bg-red-950/80 text-red-500 rounded-3xl flex items-center justify-center mb-4 border border-red-800">
+          <ShieldAlert size={34} />
+        </div>
+        <h2 className="text-2xl font-black text-white">Emergency Token Revoked</h2>
+        <p className="text-sm text-slate-300 mt-2 max-w-sm leading-relaxed">
+          This Emergency QR Code has been revoked by the patient for privacy and security. A new token has been generated.
+        </p>
+        <div className="mt-6 flex flex-col sm:flex-row gap-2">
+          <a
+            href="tel:108"
+            className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg"
+          >
+            <PhoneCall size={16} /> Call 108 Ambulance
+          </a>
+          <a
+            href="tel:112"
+            className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2"
+          >
+            <PhoneCall size={16} /> Call 112 Helpline
+          </a>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-gray-900 dark:text-gray-100 pb-20 transition-colors">
+      
       {/* Red Alert Header */}
       <div className="bg-red-600 text-white p-4 sticky top-0 z-20 shadow-lg">
         <div className="max-w-md mx-auto flex items-center justify-between">
@@ -82,156 +127,175 @@ const EmergencyViewPage: React.FC = () => {
 
       <div className="p-4 max-w-md mx-auto space-y-4">
         
+        {/* Cached / Offline Data Warning Banner */}
+        {isCached && (
+          <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/60 p-3 rounded-2xl flex items-start gap-2.5 text-xs text-amber-900 dark:text-amber-200">
+            <WifiOff size={16} className="text-amber-600 shrink-0 mt-0.5" />
+            <div className="space-y-0.5">
+              <span className="font-bold block">Offline Cached Emergency Record</span>
+              <p className="text-[11px] leading-relaxed text-amber-800 dark:text-amber-300">
+                Displaying approved local offline data.
+                {lastSyncedAt && ` Last synchronized: ${new Date(lastSyncedAt).toLocaleString()}. `}
+                Real-time records may differ if patient updated profile while offline.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Patient Hero Card */}
         <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-md border border-gray-100 dark:border-slate-800 p-5 text-center space-y-3">
-          <div className="w-24 h-24 bg-red-100 text-red-600 dark:bg-red-950/70 dark:text-red-400 rounded-full mx-auto flex items-center justify-center text-3xl font-black border-4 border-red-200 dark:border-red-900 shadow-inner">
-            {profile?.name ? profile.name.charAt(0) : 'P'}
+          <div className="w-20 h-20 bg-red-100 text-red-600 dark:bg-red-950/70 dark:text-red-400 rounded-full mx-auto flex items-center justify-center text-3xl font-black border-4 border-red-200 dark:border-red-900 shadow-inner">
+            {profile?.preferredName ? profile.preferredName.charAt(0) : 'P'}
           </div>
 
           <div>
             <h2 className="text-2xl font-black text-gray-900 dark:text-white leading-tight">
-              {profile?.visibility?.name !== false ? profile.name : 'Emergency Patient'}
+              {profile?.preferredName || 'Emergency Patient'}
             </h2>
-            <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold mt-0.5">
-              Verified Emergency Medical Record
-            </p>
+            <div className="flex items-center justify-center gap-1.5 mt-1 text-xs text-emerald-600 dark:text-emerald-400 font-bold">
+              <ShieldCheck size={14} />
+              <span>Verified Public Emergency Record</span>
+            </div>
           </div>
 
-          {profile?.visibility?.bloodGroup !== false && (
-            <div className="pt-1">
-              <span className="text-[10px] uppercase font-black text-gray-400 dark:text-gray-500 tracking-wider block mb-1">
-                Blood Group
-              </span>
-              <div className="inline-block bg-red-600 text-white px-6 py-2 rounded-2xl font-black text-3xl shadow-lg shadow-red-900/20">
-                {profile.bloodGroup || 'O+'}
+          {/* Blood Group & Organ Donor Badges */}
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+            {profile?.bloodGroup && (
+              <div className="bg-red-600 text-white px-5 py-2 rounded-2xl font-black text-2xl shadow-sm tracking-wide">
+                {profile.bloodGroup}
               </div>
-            </div>
-          )}
+            )}
 
-          {profile?.organDonor && (
-            <div className="pt-1">
-              <span className="inline-block bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 text-xs font-black px-3 py-1 rounded-full">
-                ❤️ Registered Organ Donor
-              </span>
+            {profile?.organDonor && (
+              <div className="bg-emerald-600 text-white px-3.5 py-2 rounded-2xl font-bold text-xs shadow-sm flex items-center gap-1">
+                <span>❤️</span>
+                <span>Organ Donor</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Known Allergies Section */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-slate-800 space-y-2">
+          <h3 className="font-black text-xs text-red-600 dark:text-red-400 uppercase tracking-wider flex items-center gap-1.5">
+            <AlertTriangle size={15} /> Known Medical Allergies:
+          </h3>
+          {profile?.allergies && profile.allergies.length > 0 ? (
+            <div className="flex flex-wrap gap-1.5">
+              {profile.allergies.map((allergy, idx) => (
+                <span
+                  key={idx}
+                  className="px-3 py-1 bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-300 text-xs font-bold rounded-xl border border-red-200 dark:border-red-800"
+                >
+                  {allergy}
+                </span>
+              ))}
             </div>
+          ) : (
+            <p className="text-xs text-gray-500">No known medical allergies documented.</p>
           )}
         </div>
 
-        {/* 😷 STRANGER & PANDEMIC SAFETY NOTICE */}
-        {profile?.pandemicNote && (
-          <div className="bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-600 rounded-2xl p-4 shadow-sm text-left space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="text-xl">😷</span>
-              <div>
-                <h3 className="font-black text-amber-900 dark:text-amber-200 text-xs uppercase tracking-wide">
-                  NOTICE FOR STRANGERS & RESPONDERS
-                </h3>
-                <p className="text-[10px] text-amber-700 dark:text-amber-400 font-medium">
-                  Precautionary guidance before physical assistance
-                </p>
-              </div>
+        {/* Critical Medical Conditions */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-slate-800 space-y-2">
+          <h3 className="font-black text-xs text-blue-600 dark:text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
+            <HeartPulse size={15} /> Critical Medical Conditions:
+          </h3>
+          {profile?.criticalConditions && profile.criticalConditions.length > 0 ? (
+            <div className="flex flex-wrap gap-1.5">
+              {profile.criticalConditions.map((cond, idx) => (
+                <span
+                  key={idx}
+                  className="px-3 py-1 bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 text-xs font-bold rounded-xl border border-blue-200 dark:border-blue-800"
+                >
+                  {cond}
+                </span>
+              ))}
             </div>
-            <p className="text-xs text-amber-950 dark:text-amber-100 font-bold bg-white/90 dark:bg-slate-900 p-3 rounded-xl border border-amber-200 dark:border-amber-900/60 whitespace-pre-wrap leading-relaxed">
-              {profile.pandemicNote}
-            </p>
-          </div>
-        )}
+          ) : (
+            <p className="text-xs text-gray-500">No critical chronic conditions listed.</p>
+          )}
+        </div>
 
-        {/* Emergency Instructions */}
+        {/* Important Emergency Instructions & Stranger Notice */}
         {profile?.emergencyInstructions && (
-          <div className="bg-blue-50 dark:bg-blue-950/40 border-2 border-blue-300 dark:border-blue-800 p-4 rounded-2xl text-left space-y-1">
-            <h3 className="font-black text-blue-900 dark:text-blue-200 text-xs uppercase tracking-wider">
-              🚨 CRITICAL PATIENT INSTRUCTIONS
+          <div className="bg-blue-50 dark:bg-blue-950/40 border-l-4 border-blue-600 p-4 rounded-r-2xl shadow-sm text-left space-y-1">
+            <h3 className="font-black text-blue-900 dark:text-blue-200 text-xs tracking-wider uppercase">
+              Important Emergency Instructions
             </h3>
-            <p className="text-xs text-blue-950 dark:text-blue-100 font-bold whitespace-pre-wrap leading-relaxed">
+            <p className="text-xs font-medium text-blue-950 dark:text-blue-100 leading-relaxed">
               {profile.emergencyInstructions}
             </p>
           </div>
         )}
 
-        {/* Emergency Call Actions */}
-        <div className="space-y-2.5 pt-2">
-          <h3 className="font-black text-gray-700 dark:text-gray-300 text-xs uppercase tracking-wider px-1">
-            Emergency Contacts
+        {profile?.pandemicNote && (
+          <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700 p-3.5 rounded-2xl text-xs text-amber-900 dark:text-amber-200 space-y-1">
+            <span className="font-black block uppercase tracking-wider text-amber-800 dark:text-amber-300">
+              Notice for First Responders & Strangers:
+            </span>
+            <p className="text-[11px] leading-relaxed text-amber-950 dark:text-amber-100">
+              {profile.pandemicNote}
+            </p>
+          </div>
+        )}
+
+        {/* Primary Emergency Contacts */}
+        <div className="space-y-2.5">
+          <h3 className="font-black text-gray-800 dark:text-gray-200 text-xs uppercase tracking-wider px-1">
+            Primary Emergency Contacts
           </h3>
-          
-          {contacts.map((contact, idx) => (
-            <a 
-              key={contact.id || idx} 
-              href={`tel:${contact.phone}`} 
-              className="flex items-center justify-between bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white p-3.5 rounded-2xl shadow-md active:scale-95 transition-transform"
-            >
-              <div className="flex items-center gap-3">
-                <div className="bg-white/20 p-2.5 rounded-xl">
-                  <Phone size={20} />
+          {profile?.primaryContacts && profile.primaryContacts.length > 0 ? (
+            profile.primaryContacts.map((contact, idx) => (
+              <a
+                key={idx}
+                href={`tel:${contact.phone}`}
+                className="flex items-center justify-between bg-red-600 hover:bg-red-700 text-white p-4 rounded-2xl shadow-md active:scale-95 transition-all"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="bg-white/20 p-2.5 rounded-full">
+                    <Phone size={20} />
+                  </div>
+                  <div>
+                    <div className="font-bold text-sm sm:text-base leading-tight">
+                      {contact.name}
+                    </div>
+                    <div className="text-red-100 text-xs font-medium">
+                      {contact.relationship} • {contact.phone}
+                    </div>
+                  </div>
                 </div>
-                <div className="text-left">
-                  <div className="font-black text-sm">Call {contact.name}</div>
-                  <div className="text-[11px] text-red-100 font-medium">{contact.relationship} • {contact.phone}</div>
-                </div>
-              </div>
-              <span className="bg-white text-red-600 px-3 py-1 rounded-xl text-xs font-black">
-                CALL
-              </span>
-            </a>
-          ))}
-
-          {/* National Ambulance 108 */}
-          <a 
-            href="tel:108" 
-            className="flex items-center justify-between bg-slate-900 hover:bg-black text-white p-3.5 rounded-2xl shadow-md active:scale-95 transition-transform"
-          >
-            <div className="flex items-center gap-3">
-              <div className="bg-red-600 p-2.5 rounded-xl text-white">
-                <Phone size={20} />
-              </div>
-              <div className="text-left">
-                <div className="font-black text-sm">CALL 108 (Ambulance)</div>
-                <div className="text-[11px] text-slate-400 font-medium">Free Emergency Medical Helpline</div>
-              </div>
+                <span className="bg-white text-red-600 px-3 py-1 rounded-xl text-xs font-black shadow-xs">
+                  CALL
+                </span>
+              </a>
+            ))
+          ) : (
+            <div className="p-3 bg-gray-100 dark:bg-slate-800 rounded-xl text-xs text-gray-500 text-center">
+              No emergency contacts listed. Call national helplines below.
             </div>
-            <span className="bg-red-600 text-white px-3 py-1 rounded-xl text-xs font-black">
-              108
-            </span>
+          )}
+        </div>
+
+        {/* Helplines (108 & 112) */}
+        <div className="grid grid-cols-2 gap-3 pt-2">
+          <a
+            href="tel:108"
+            className="py-3.5 px-4 bg-red-700 hover:bg-red-800 text-white rounded-2xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md active:scale-95 transition-all text-center"
+          >
+            <PhoneCall size={16} /> Call 108 (Ambulance)
           </a>
-
-          {/* National Emergency 112 */}
-          <a 
-            href="tel:112" 
-            className="flex items-center justify-between bg-slate-800 hover:bg-slate-900 text-white p-3.5 rounded-2xl shadow-md active:scale-95 transition-transform"
+          <a
+            href="tel:112"
+            className="py-3.5 px-4 bg-gray-900 hover:bg-black text-white rounded-2xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md active:scale-95 transition-all text-center"
           >
-            <div className="flex items-center gap-3">
-              <div className="bg-white/20 p-2.5 rounded-xl text-white">
-                <Phone size={20} />
-              </div>
-              <div className="text-left">
-                <div className="font-black text-sm">CALL 112 (Police & Emergency)</div>
-                <div className="text-[11px] text-slate-400 font-medium">All-India Emergency Helpline</div>
-              </div>
-            </div>
-            <span className="bg-white/20 text-white px-3 py-1 rounded-xl text-xs font-black">
-              112
-            </span>
+            <PhoneCall size={16} /> Call 112 (Helpline)
           </a>
         </div>
 
-        {/* Back / Home Link */}
-        <div className="pt-4 text-center">
-          <Link
-            to="/"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-red-600 dark:text-red-400 hover:underline"
-          >
-            <ArrowLeft size={14} /> Open Full LifeGuard App
-          </Link>
-        </div>
-
-        {/* Legal Disclaimer */}
-        <div className="bg-gray-100 dark:bg-slate-900 p-3.5 rounded-2xl border border-gray-200 dark:border-slate-800 text-center">
-          <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
-            DISCLAIMER: This Medical ID is provided by LifeGuard for emergency identification. Do not administer prescription medication without professional qualification. In an emergency, dial 108 immediately.
-          </p>
-        </div>
-
+        <p className="text-center text-[10px] text-gray-400 dark:text-gray-500 pt-4 px-4 leading-relaxed">
+          Authorized Public Emergency Record • Sensitive clinical documents, full address, and national identity numbers remain strictly private and protected.
+        </p>
       </div>
     </div>
   );

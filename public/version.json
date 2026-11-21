@@ -1,11 +1,12 @@
 {
-  "version": "1.5.0",
-  "buildTime": 1732205000000,
+  "version": "1.6.0",
+  "buildTime": 1732210000000,
   "releaseDate": "2026-11-21",
   "changelog": [
-    "🫀 Offline First-Aid & CPR Assistance Center with 9 interactive protocols and AHA 100–120 BPM Metronome",
-    "🗣️ Full 6-language support: English, தமிழ், हिन्दी, తెలుగు, ಕನ್ನಡ, and മലയാളം",
-    "✈️ 100% Offline PWA capability with precached guides, vector SVG illustrations, and Web Audio synthesizer",
-    "🚨 Advanced Emergency Response System: Smart accident detection, live GPS tracking, and SMS fallback"
+    "🛡️ Advanced Public Medical QR with secure revocable tokens (/emergency/view/:token) and access logs",
+    "🪪 Printable Emergency Wallet Card & Wearable Wristband Generator with PNG and PDF print formats",
+    "📶 Web NFC Medical Tag Writer with cross-device QR fallback",
+    "📱 1080×2400 Lock Screen Wallpaper Generator with safe-area clock adjustment and AMOLED themes",
+    "💾 Offline Emergency Card synchronization with last-synced timestamp validation"
   ]
 }

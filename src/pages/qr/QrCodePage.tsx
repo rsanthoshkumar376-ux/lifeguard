@@ -22,7 +22,16 @@ const QrCodePage = () => {
         token: 'demo-emergency-lifeguard-108',
         userId: 'demo-user',
         active: true,
-        createdAt: new Date()
+        publicUrl: `${window.location.origin}/emergency/view/demo-emergency-lifeguard-108`,
+        createdAt: new Date().toISOString(),
+        publicApprovedData: {
+          preferredName: 'Demo Patient',
+          bloodGroup: 'O+',
+          allergies: ['No known allergies'],
+          criticalConditions: ['Demo Profile'],
+          emergencyInstructions: 'Call 108 immediately',
+          primaryContacts: [{ name: 'Family', phone: '+919876543210', relationship: 'Primary' }]
+        }
       };
       setTokens([demoToken]);
       setLogs([]);
@@ -37,11 +46,11 @@ const QrCodePage = () => {
       const l = await getAccessLogs(user.uid);
       if (t.length === 0) {
         const newToken = await generateToken(user.uid);
-        setTokens([{ id: newToken.id, token: newToken.token, userId: user.uid, active: true, createdAt: new Date() }]);
+        setTokens([newToken]);
       } else {
         setTokens(t);
       }
-      setLogs(l.sort((a, b) => b.timestamp - a.timestamp));
+      setLogs((l as any[]).sort((a: any, b: any) => new Date(b.accessedAt || b.timestamp).getTime() - new Date(a.accessedAt || a.timestamp).getTime()));
     } catch (e) {
       console.error('Error loading QR tokens', e);
     } finally {
@@ -138,7 +147,7 @@ const QrCodePage = () => {
   }
 
   const activeToken = tokens[0]?.token || 'demo-emergency-token';
-  const qrUrl = `${window.location.origin}/emergency/view?token=${activeToken}`;
+  const qrUrl = `${window.location.origin}/emergency/view/${activeToken}`;
 
   return (
     <div className="p-4 max-w-lg mx-auto pb-24 text-gray-900">

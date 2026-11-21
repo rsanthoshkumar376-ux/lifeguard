@@ -133,6 +133,7 @@ const App: React.FC = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/emergency/view" element={<EmergencyViewPage />} />
+        <Route path="/emergency/view/:token" element={<EmergencyViewPage />} />
         
         {/* Catch-all 404 */}
         <Route path="*" element={<NotFound />} />
