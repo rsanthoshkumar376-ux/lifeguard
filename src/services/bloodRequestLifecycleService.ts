@@ -1,0 +1,537 @@
+import { db } from '../config/firebase';
+import { collection, doc, getDocs, getDoc, setDoc, updateDoc, query, where, orderBy, limit } from 'firebase/firestore';
+import { BloodGroup, BloodComponent } from './bloodCompatibilityService';
+
+export type RequestLifecycleStatus = 
+  | 'Created'
+  | 'Donors Notified'
+  | 'Donor Responded'
+  | 'Hospital Contacted'
+  | 'Fulfilled'
+  | 'Cancelled';
+
+export const LIFECYCLE_STAGES: RequestLifecycleStatus[] = [
+  'Created',
+  'Donors Notified',
+  'Donor Responded',
+  'Hospital Contacted',
+  'Fulfilled'
+];
+
+export interface LifecycleTimelineEvent {
+  status: RequestLifecycleStatus;
+  timestamp: string;
+  note: string;
+  updatedBy: string;
+}
+
+export interface DonorResponseRecord {
+  donorId: string;
+  donorName: string;
+  bloodGroup: BloodGroup;
+  status: 'accepted' | 'declined';
+  respondedAt: string;
+  distanceKm?: number;
+  phone?: string;
+  notes?: string;
+}
+
+export interface EmergencyBloodRequest {
+  id: string;
+  hospitalId: string;
+  hospitalName: string;
+  hospitalAddress: string;
+  city: string;
+  phone: string;
+  lat: number;
+  lng: number;
+  bloodGroup: BloodGroup;
+  bloodComponent: BloodComponent;
+  unitsRequired: number;
+  unitsFulfilled: number;
+  urgency: 'Normal' | 'Urgent' | 'Critical';
+  patientReference: string;
+  department: string;
+  notes: string;
+  status: RequestLifecycleStatus;
+  timeline: LifecycleTimelineEvent[];
+  donorResponses: DonorResponseRecord[];
+  notifiedCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+const LOCAL_LIFECYCLE_REQUESTS_KEY = 'lifeguard_lifecycle_blood_requests';
+
+/**
+ * Get all emergency blood requests with lifecycle tracking
+ */
+export const getAllEmergencyRequests = async (): Promise<EmergencyBloodRequest[]> => {
+  let requests: EmergencyBloodRequest[] = [];
+
+  // Check localStorage first
+  try {
+    const raw = localStorage.getItem(LOCAL_LIFECYCLE_REQUESTS_KEY);
+    if (raw) {
+      requests = JSON.parse(raw);
+    }
+  } catch (e) {
+    console.warn('Error reading local lifecycle requests:', e);
+  }
+
+  // Seed default demo requests if empty
+  if (requests.length === 0) {
+    requests = generateSeedEmergencyRequests();
+    try {
+      localStorage.setItem(LOCAL_LIFECYCLE_REQUESTS_KEY, JSON.stringify(requests));
+    } catch {}
+  }
+
+  // Fetch from Firestore if available
+  if (db) {
+    try {
+      const q = query(
+        collection(db, 'blood_requests'),
+        orderBy('createdAt', 'desc'),
+        limit(30)
+      );
+      const snaps = await getDocs(q);
+      if (!snaps.empty) {
+        const cloudRequests: EmergencyBloodRequest[] = snaps.docs.map(d => ({
+          id: d.id,
+          ...d.data()
+        } as EmergencyBloodRequest));
+
+        const cloudIds = new Set(cloudRequests.map(r => r.id));
+        requests = [...cloudRequests, ...requests.filter(r => !cloudIds.has(r.id))];
+      }
+    } catch (err) {
+      console.warn('Firestore blood_requests query fallback to local:', err);
+    }
+  }
+
+  return requests;
+};
+
+/**
+ * Get single emergency request by ID
+ */
+export const getEmergencyRequestById = async (id: string): Promise<EmergencyBloodRequest | null> => {
+  const all = await getAllEmergencyRequests();
+  return all.find(r => r.id === id) || null;
+};
+
+/**
+ * Create a new emergency blood request with full 6-stage lifecycle tracking
+ */
+export const createEmergencyBloodRequest = async (params: {
+  hospitalId: string;
+  hospitalName: string;
+  hospitalAddress: string;
+  city: string;
+  phone: string;
+  lat?: number;
+  lng?: number;
+  bloodGroup: BloodGroup;
+  bloodComponent: BloodComponent;
+  unitsRequired: number;
+  urgency: 'Normal' | 'Urgent' | 'Critical';
+  patientReference?: string;
+  department?: string;
+  notes?: string;
+}): Promise<EmergencyBloodRequest> => {
+  const now = new Date().toISOString();
+  const reqId = 'req_' + Date.now();
+
+  const newRequest: EmergencyBloodRequest = {
+    id: reqId,
+    hospitalId: params.hospitalId || 'hosp_' + Date.now(),
+    hospitalName: params.hospitalName,
+    hospitalAddress: params.hospitalAddress,
+    city: params.city,
+    phone: params.phone,
+    lat: params.lat || 13.0827,
+    lng: params.lng || 80.2707,
+    bloodGroup: params.bloodGroup,
+    bloodComponent: params.bloodComponent || 'Packed Red Blood Cells (PRBC)',
+    unitsRequired: Number(params.unitsRequired) || 1,
+    unitsFulfilled: 0,
+    urgency: params.urgency,
+    patientReference: params.patientReference || 'PAT-' + Math.floor(1000 + Math.random() * 9000),
+    department: params.department || 'Trauma & Emergency Care',
+    notes: params.notes || `Urgent requirement for ${params.unitsRequired} unit(s) of ${params.bloodGroup} ${params.bloodComponent}.`,
+    status: 'Donors Notified', // Immediately transitions to Donors Notified upon creation
+    timeline: [
+      {
+        status: 'Created',
+        timestamp: now,
+        note: 'Emergency blood requisition generated by hospital blood bank coordinator.',
+        updatedBy: params.hospitalName
+      },
+      {
+        status: 'Donors Notified',
+        timestamp: new Date(Date.now() + 1000).toISOString(),
+        note: `Broadcast alert sent to consenting ${params.bloodGroup} donors within radius.`,
+        updatedBy: 'LifeGuard Push System'
+      }
+    ],
+    donorResponses: [],
+    notifiedCount: Math.floor(8 + Math.random() * 14),
+    createdAt: now,
+    updatedAt: now
+  };
+
+  // Save to Firestore
+  if (db) {
+    try {
+      await setDoc(doc(db, 'blood_requests', reqId), newRequest);
+    } catch (err) {
+      console.warn('Firestore setDoc blood_requests fallback:', err);
+    }
+  }
+
+  // Save locally
+  try {
+    const raw = localStorage.getItem(LOCAL_LIFECYCLE_REQUESTS_KEY);
+    const existing = raw ? JSON.parse(raw) : [];
+    localStorage.setItem(LOCAL_LIFECYCLE_REQUESTS_KEY, JSON.stringify([newRequest, ...existing]));
+  } catch (e) {
+    console.error('Failed to save request locally:', e);
+  }
+
+  // Also maintain backward-compatibility with lifeguard_blood_requests
+  try {
+    const legacyRaw = localStorage.getItem('lifeguard_blood_requests');
+    const legacyList = legacyRaw ? JSON.parse(legacyRaw) : [];
+    legacyList.unshift({
+      id: newRequest.id,
+      hospitalName: newRequest.hospitalName,
+      city: newRequest.city,
+      address: newRequest.hospitalAddress,
+      hospitalAddress: newRequest.hospitalAddress,
+      phone: newRequest.phone,
+      hospitalPhone: newRequest.phone,
+      bloodGroup: newRequest.bloodGroup,
+      unitsRequired: newRequest.unitsRequired,
+      unitsFulfilled: 0,
+      urgency: newRequest.urgency,
+      status: 'open',
+      patientReference: newRequest.patientReference,
+      department: newRequest.department,
+      message: newRequest.notes,
+      createdAt: newRequest.createdAt,
+      updatedAt: newRequest.updatedAt
+    });
+    localStorage.setItem('lifeguard_blood_requests', JSON.stringify(legacyList));
+  } catch {}
+
+  // Add notification in system feed
+  try {
+    const notifRaw = localStorage.getItem('lifeguard_notifications');
+    const notifs = notifRaw ? JSON.parse(notifRaw) : [];
+    notifs.unshift({
+      id: 'notif_' + Date.now(),
+      type: 'blood',
+      title: `🚨 Emergency Blood Request: ${newRequest.bloodGroup}`,
+      message: `${newRequest.unitsRequired} unit(s) of ${newRequest.bloodComponent} needed at ${newRequest.hospitalName}, ${newRequest.city}.`,
+      timestamp: 'Just now',
+      read: false,
+      link: `/blood/${newRequest.id}`
+    });
+    localStorage.setItem('lifeguard_notifications', JSON.stringify(notifs));
+  } catch {}
+
+  return newRequest;
+};
+
+/**
+ * Record a donor response (Accept or Decline)
+ */
+export const recordDonorResponse = async (params: {
+  requestId: string;
+  donorId: string;
+  donorName: string;
+  bloodGroup: BloodGroup;
+  status: 'accepted' | 'declined';
+  phone?: string;
+  distanceKm?: number;
+  notes?: string;
+}): Promise<EmergencyBloodRequest | null> => {
+  const { requestId, donorId, donorName, bloodGroup, status, phone, distanceKm, notes } = params;
+  const now = new Date().toISOString();
+
+  const all = await getAllEmergencyRequests();
+  const target = all.find(r => r.id === requestId);
+  if (!target) return null;
+
+  // Add or update donor response
+  const existingIdx = target.donorResponses.findIndex(d => d.donorId === donorId);
+  const responseRecord: DonorResponseRecord = {
+    donorId,
+    donorName,
+    bloodGroup,
+    status,
+    respondedAt: now,
+    distanceKm,
+    phone,
+    notes
+  };
+
+  if (existingIdx >= 0) {
+    target.donorResponses[existingIdx] = responseRecord;
+  } else {
+    target.donorResponses.unshift(responseRecord);
+  }
+
+  // Update lifecycle status if accepted
+  if (status === 'accepted') {
+    target.unitsFulfilled = Math.min(target.unitsRequired, target.unitsFulfilled + 1);
+
+    if (target.status === 'Created' || target.status === 'Donors Notified') {
+      target.status = 'Donor Responded';
+      target.timeline.push({
+        status: 'Donor Responded',
+        timestamp: now,
+        note: `Donor ${donorName} (${bloodGroup}) confirmed willingness to donate.`,
+        updatedBy: donorName
+      });
+    }
+
+    // If all units pledged/fulfilled
+    if (target.unitsFulfilled >= target.unitsRequired && target.status !== 'Fulfilled') {
+      target.status = 'Hospital Contacted';
+      target.timeline.push({
+        status: 'Hospital Contacted',
+        timestamp: new Date(Date.now() + 1000).toISOString(),
+        note: `Hospital blood bank coordinator contacted to schedule pre-transfusion crossmatch.`,
+        updatedBy: 'LifeGuard Coordinator'
+      });
+    }
+  }
+
+  target.updatedAt = now;
+
+  // Save changes
+  await saveLifecycleRequest(target);
+
+  return target;
+};
+
+/**
+ * Transition request lifecycle status manually (e.g. by hospital coordinator)
+ */
+export const updateRequestLifecycleStatus = async (
+  requestId: string,
+  newStatus: RequestLifecycleStatus,
+  note: string,
+  updatedBy: string = 'Hospital Coordinator'
+): Promise<EmergencyBloodRequest | null> => {
+  const all = await getAllEmergencyRequests();
+  const target = all.find(r => r.id === requestId);
+  if (!target) return null;
+
+  target.status = newStatus;
+  target.updatedAt = new Date().toISOString();
+  target.timeline.push({
+    status: newStatus,
+    timestamp: target.updatedAt,
+    note,
+    updatedBy
+  });
+
+  await saveLifecycleRequest(target);
+  return target;
+};
+
+/**
+ * Persist request update to storage and Firestore
+ */
+const saveLifecycleRequest = async (request: EmergencyBloodRequest): Promise<void> => {
+  // Update local storage
+  try {
+    const raw = localStorage.getItem(LOCAL_LIFECYCLE_REQUESTS_KEY);
+    const list: EmergencyBloodRequest[] = raw ? JSON.parse(raw) : [];
+    const idx = list.findIndex(r => r.id === request.id);
+    if (idx >= 0) {
+      list[idx] = request;
+    } else {
+      list.unshift(request);
+    }
+    localStorage.setItem(LOCAL_LIFECYCLE_REQUESTS_KEY, JSON.stringify(list));
+  } catch (e) {
+    console.error('Failed saving lifecycle request locally:', e);
+  }
+
+  // Update Firestore
+  if (db) {
+    try {
+      await updateDoc(doc(db, 'blood_requests', request.id), {
+        status: request.status,
+        unitsFulfilled: request.unitsFulfilled,
+        timeline: request.timeline,
+        donorResponses: request.donorResponses,
+        updatedAt: request.updatedAt
+      });
+    } catch (e) {
+      console.warn('Firestore updateDoc blood_requests fallback:', e);
+    }
+  }
+};
+
+/**
+ * Generates realistic seed emergency requests
+ */
+function generateSeedEmergencyRequests(): EmergencyBloodRequest[] {
+  return [
+    {
+      id: 'req_emergency_01',
+      hospitalId: 'hosp_apollo_01',
+      hospitalName: 'Apollo Speciality Hospital',
+      hospitalAddress: 'No. 21, Greams Lane, Thousand Lights',
+      city: 'Chennai',
+      phone: '+91 44 2829 0200',
+      lat: 13.0569,
+      lng: 80.2514,
+      bloodGroup: 'O-',
+      bloodComponent: 'Packed Red Blood Cells (PRBC)',
+      unitsRequired: 2,
+      unitsFulfilled: 1,
+      urgency: 'Critical',
+      patientReference: 'PAT-TRAUMA-991',
+      department: 'Emergency & Polytrauma ICU',
+      notes: 'Emergency road traffic accident victim with severe hemorrhage. Universal donor O- PRBC urgently needed for immediate crossmatching.',
+      status: 'Donor Responded',
+      timeline: [
+        {
+          status: 'Created',
+          timestamp: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
+          note: 'Requisition entered by attending emergency trauma surgeon.',
+          updatedBy: 'Dr. S. Sundaram'
+        },
+        {
+          status: 'Donors Notified',
+          timestamp: new Date(Date.now() - 1000 * 60 * 88).toISOString(),
+          note: 'Push broadcast dispatched to 14 registered O- donors within 10 km.',
+          updatedBy: 'LifeGuard Notification Hub'
+        },
+        {
+          status: 'Donor Responded',
+          timestamp: new Date(Date.now() - 1000 * 60 * 35).toISOString(),
+          note: 'Ananya S. pledged 1 unit and is en route to blood bank.',
+          updatedBy: 'Ananya S.'
+        }
+      ],
+      donorResponses: [
+        {
+          donorId: 'donor_2',
+          donorName: 'Ananya S.',
+          bloodGroup: 'O-',
+          status: 'accepted',
+          respondedAt: new Date(Date.now() - 1000 * 60 * 35).toISOString(),
+          distanceKm: 2.1,
+          phone: '+91 98401 23456',
+          notes: 'En route to hospital blood bank.'
+        }
+      ],
+      notifiedCount: 14,
+      createdAt: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
+      updatedAt: new Date(Date.now() - 1000 * 60 * 35).toISOString()
+    },
+    {
+      id: 'req_emergency_02',
+      hospitalId: 'hosp_mims_02',
+      hospitalName: 'Government General Hospital',
+      hospitalAddress: 'EVR Periyar Salai, Park Town',
+      city: 'Chennai',
+      phone: '+91 44 2530 5000',
+      lat: 13.0827,
+      lng: 80.2707,
+      bloodGroup: 'A+',
+      bloodComponent: 'Platelet Concentrate (RDP)',
+      unitsRequired: 3,
+      unitsFulfilled: 0,
+      urgency: 'Urgent',
+      patientReference: 'PAT-HEM-402',
+      department: 'Hematology & Oncology Wing',
+      notes: 'Post-chemotherapy thrombocytopenia patient requiring random donor platelets within 6 hours.',
+      status: 'Donors Notified',
+      timeline: [
+        {
+          status: 'Created',
+          timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+          note: 'Requisition entered by resident hematologist.',
+          updatedBy: 'Dr. V. Priya'
+        },
+        {
+          status: 'Donors Notified',
+          timestamp: new Date(Date.now() - 1000 * 60 * 43).toISOString(),
+          note: 'Push broadcast dispatched to 22 nearby A+ and O+ compatible donors.',
+          updatedBy: 'LifeGuard Notification Hub'
+        }
+      ],
+      donorResponses: [],
+      notifiedCount: 22,
+      createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+      updatedAt: new Date(Date.now() - 1000 * 60 * 43).toISOString()
+    },
+    {
+      id: 'req_emergency_03',
+      hospitalId: 'hosp_kauvery_03',
+      hospitalName: 'Kauvery Hospital',
+      hospitalAddress: 'No. 81, TTK Road, Alwarpet',
+      city: 'Chennai',
+      phone: '+91 44 4000 6000',
+      lat: 13.0334,
+      lng: 80.2528,
+      bloodGroup: 'B+',
+      bloodComponent: 'Whole Blood',
+      unitsRequired: 1,
+      unitsFulfilled: 1,
+      urgency: 'Normal',
+      patientReference: 'PAT-SURG-118',
+      department: 'Cardiothoracic Surgery',
+      notes: 'Scheduled elective cardiac bypass surgery scheduled for tomorrow morning.',
+      status: 'Hospital Contacted',
+      timeline: [
+        {
+          status: 'Created',
+          timestamp: new Date(Date.now() - 1000 * 60 * 300).toISOString(),
+          note: 'Requisition entered by blood bank staff.',
+          updatedBy: 'Blood Bank Officer'
+        },
+        {
+          status: 'Donors Notified',
+          timestamp: new Date(Date.now() - 1000 * 60 * 295).toISOString(),
+          note: 'Broadcast sent to donors.',
+          updatedBy: 'LifeGuard Notification Hub'
+        },
+        {
+          status: 'Donor Responded',
+          timestamp: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
+          note: 'Donor accepted requisition.',
+          updatedBy: 'Karthik V.'
+        },
+        {
+          status: 'Hospital Contacted',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+          note: 'Hospital confirmed pre-donation screening appointment.',
+          updatedBy: 'Dr. Anand M.'
+        }
+      ],
+      donorResponses: [
+        {
+          donorId: 'donor_3',
+          donorName: 'Karthik V.',
+          bloodGroup: 'B+',
+          status: 'accepted',
+          respondedAt: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
+          distanceKm: 3.4,
+          phone: '+91 98409 87654'
+        }
+      ],
+      notifiedCount: 9,
+      createdAt: new Date(Date.now() - 1000 * 60 * 300).toISOString(),
+      updatedAt: new Date(Date.now() - 1000 * 60 * 60).toISOString()
+    }
+  ];
+}

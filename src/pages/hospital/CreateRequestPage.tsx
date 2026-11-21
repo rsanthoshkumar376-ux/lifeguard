@@ -1,14 +1,31 @@
 import React, { useState } from 'react';
-import { ArrowLeft, AlertTriangle, MapPin, Building2, Phone, Compass, Loader2 } from 'lucide-react';
+import { 
+  ArrowLeft, 
+  AlertTriangle, 
+  MapPin, 
+  Building2, 
+  Phone, 
+  Compass, 
+  Loader2, 
+  Droplet,
+  ShieldCheck,
+  CheckCircle2
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { createBloodRequest } from '../../services/bloodRequest';
-
-const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+import { 
+  BloodGroup, 
+  ALL_BLOOD_GROUPS, 
+  BloodComponent, 
+  BLOOD_COMPONENTS,
+  CLINICAL_TRANSFUSION_DISCLAIMER 
+} from '../../services/bloodCompatibilityService';
+import { createEmergencyBloodRequest } from '../../services/bloodRequestLifecycleService';
 
 const CreateRequestPage: React.FC = () => {
   const navigate = useNavigate();
-  const [selectedGroup, setSelectedGroup] = useState('O+');
-  const [units, setUnits] = useState(1);
+  const [selectedGroup, setSelectedGroup] = useState<BloodGroup>('O+');
+  const [selectedComponent, setSelectedComponent] = useState<BloodComponent>('Packed Red Blood Cells (PRBC)');
+  const [units, setUnits] = useState(2);
   const [urgency, setUrgency] = useState<'Normal' | 'Urgent' | 'Critical'>('Urgent');
   
   // Location & Hospital fields
@@ -16,12 +33,14 @@ const CreateRequestPage: React.FC = () => {
   const [city, setCity] = useState('');
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
+  const [hospitalLat, setHospitalLat] = useState<number>(13.0827);
+  const [hospitalLng, setHospitalLng] = useState<number>(80.2707);
   const [locating, setLocating] = useState(false);
 
   // Patient & Clinical fields
   const [patientRef, setPatientRef] = useState('');
-  const [department, setDepartment] = useState('');
-  const [message, setMessage] = useState('');
+  const [department, setDepartment] = useState('Emergency Trauma Ward');
+  const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -35,6 +54,8 @@ const CreateRequestPage: React.FC = () => {
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude, longitude } = pos.coords;
+        setHospitalLat(latitude);
+        setHospitalLng(longitude);
         try {
           const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
           if (res.ok) {
@@ -67,73 +88,81 @@ const CreateRequestPage: React.FC = () => {
     setErrorMsg('');
 
     if (!hospitalName.trim()) {
-      setErrorMsg('Please enter the Hospital or Clinic Name');
+      setErrorMsg('Please enter the Hospital or Medical Center Name');
       return;
     }
     if (!city.trim()) {
-      setErrorMsg('Please enter the City or Area');
+      setErrorMsg('Please enter the City or District');
       return;
     }
 
     try {
       setLoading(true);
-      await createBloodRequest('hosp-current', {
+      await createEmergencyBloodRequest({
+        hospitalId: 'hosp_current',
         hospitalName: hospitalName.trim(),
         city: city.trim(),
-        address: address.trim() || `${hospitalName.trim()}, ${city.trim()}`,
+        hospitalAddress: address.trim() || `${hospitalName.trim()}, ${city.trim()}`,
         phone: phone.trim() || '+91 98765 43210',
+        lat: hospitalLat,
+        lng: hospitalLng,
         bloodGroup: selectedGroup,
+        bloodComponent: selectedComponent,
         unitsRequired: units,
         urgency,
         patientReference: patientRef || 'PAT-' + Math.floor(1000 + Math.random() * 9000),
         department: department || 'Emergency Trauma',
-        message: message.trim() || `Urgent requirement for ${units} unit(s) of ${selectedGroup} blood.`
+        notes: notes.trim() || `Urgent requirement for ${units} unit(s) of ${selectedGroup} ${selectedComponent}.`
       });
-      setSuccessMsg('Blood request broadcasted with location! Donors are being notified.');
+
+      setSuccessMsg('Emergency requisition broadcasted! Nearby consenting donors are being notified.');
       setTimeout(() => {
         navigate('/blood');
-      }, 1000);
+      }, 1200);
     } catch (err: any) {
       console.warn('Fallback applied for request broadcast:', err);
-      setSuccessMsg('Blood request registered with location! Donors are being notified.');
+      setSuccessMsg('Requisition registered! Donors are being notified.');
       setTimeout(() => {
         navigate('/blood');
-      }, 1000);
+      }, 1200);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col pb-16">
+    <div className="min-h-screen bg-gray-50 flex flex-col pb-20 text-gray-900">
       <div className="bg-white shadow-sm p-4 sticky top-0 z-10 flex items-center border-b border-gray-100">
-        <button onClick={() => navigate(-1)} className="mr-4 text-gray-600 hover:text-gray-900">
-          <ArrowLeft size={24} />
+        <button onClick={() => navigate(-1)} className="mr-3 text-gray-600 hover:text-gray-900">
+          <ArrowLeft size={22} />
         </button>
-        <h1 className="text-xl font-bold text-gray-900">New Blood Request</h1>
+        <div>
+          <h1 className="text-xl font-black text-gray-900 leading-tight">Emergency Blood Requisition</h1>
+          <p className="text-xs text-gray-500 font-medium">Broadcast blood component requirement to nearby donors</p>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="p-4 space-y-6 flex-1 max-w-xl mx-auto w-full">
+      <form onSubmit={handleSubmit} className="p-4 space-y-5 flex-1 max-w-xl mx-auto w-full">
         {successMsg && (
-          <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-2xl text-sm font-bold flex items-center gap-2 animate-in fade-in">
-            <span>✅</span>
+          <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-2xl text-xs font-bold flex items-center gap-2 animate-in fade-in">
+            <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
             <span>{successMsg}</span>
           </div>
         )}
 
         {errorMsg && (
-          <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl text-sm font-bold flex items-center gap-2 animate-in fade-in">
+          <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl text-xs font-bold flex items-center gap-2 animate-in fade-in">
             <AlertTriangle size={18} className="shrink-0" />
             <span>{errorMsg}</span>
           </div>
         )}
 
         {/* Hospital & Location Details Section */}
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+        <div className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 space-y-4">
           <div className="flex items-center justify-between border-b pb-2">
             <div className="flex items-center gap-2">
               <Building2 size={18} className="text-red-600" />
-              <h2 className="text-sm font-black text-gray-800 uppercase tracking-wide">Hospital & Location Details</h2>
+              <h2 className="text-xs font-black text-gray-800 uppercase tracking-wide">Hospital & Location Details</h2>
             </div>
             <button
               type="button"
@@ -147,65 +176,89 @@ const CreateRequestPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1">Hospital / Clinic Name *</label>
+            <label className="block text-xs font-black text-gray-700 mb-1">Hospital / Medical Center Name *</label>
             <input 
               type="text" 
               required
               value={hospitalName}
               onChange={(e) => setHospitalName(e.target.value)}
               placeholder="e.g. Apollo Speciality Hospital / General Hospital" 
-              className="w-full bg-gray-50 text-gray-900 font-medium placeholder:text-gray-400 border border-gray-300 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all" 
+              className="w-full bg-gray-50 text-gray-900 font-medium placeholder:text-gray-400 border border-gray-300 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all text-xs" 
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">City / Town *</label>
+              <label className="block text-xs font-black text-gray-700 mb-1">City / District *</label>
               <input 
                 type="text" 
                 required
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 placeholder="e.g. Chennai, Bangalore" 
-                className="w-full bg-gray-50 text-gray-900 font-medium placeholder:text-gray-400 border border-gray-300 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all" 
+                className="w-full bg-gray-50 text-gray-900 font-medium placeholder:text-gray-400 border border-gray-300 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all text-xs" 
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Contact Phone</label>
+              <label className="block text-xs font-black text-gray-700 mb-1">Blood Bank Coordinator Phone</label>
               <input 
                 type="tel" 
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="+91 98765 43210" 
-                className="w-full bg-gray-50 text-gray-900 font-medium placeholder:text-gray-400 border border-gray-300 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all" 
+                className="w-full bg-gray-50 text-gray-900 font-medium placeholder:text-gray-400 border border-gray-300 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all text-xs" 
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1">Street Address / Landmark (For Donor Navigation)</label>
+            <label className="block text-xs font-black text-gray-700 mb-1">Street Address & Landmark (For Navigation)</label>
             <input 
               type="text" 
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               placeholder="e.g. No. 21, Greams Lane, Thousand Lights" 
-              className="w-full bg-gray-50 text-gray-900 font-medium placeholder:text-gray-400 border border-gray-300 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all" 
+              className="w-full bg-gray-50 text-gray-900 font-medium placeholder:text-gray-400 border border-gray-300 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all text-xs" 
             />
           </div>
         </div>
 
+        {/* Blood Component Selection */}
+        <div className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 space-y-3">
+          <label className="block text-xs font-black text-gray-700 uppercase tracking-wide">
+            Required Blood Component *
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {BLOOD_COMPONENTS.map((comp) => (
+              <button
+                type="button"
+                key={comp}
+                onClick={() => setSelectedComponent(comp)}
+                className={`p-3 rounded-2xl text-xs font-black text-left border-2 transition-all flex items-center justify-between ${
+                  selectedComponent === comp
+                    ? 'border-red-600 bg-red-50 text-red-700 shadow-xs'
+                    : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <span>{comp}</span>
+                {selectedComponent === comp && <span className="text-red-600">✓</span>}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Blood Group Required */}
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-3">
-          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide">Blood Group Required *</label>
+        <div className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 space-y-3">
+          <label className="block text-xs font-black text-gray-700 uppercase tracking-wide">Blood Group Required *</label>
           <div className="grid grid-cols-4 gap-2">
-            {bloodGroups.map((bg) => (
+            {ALL_BLOOD_GROUPS.map((bg) => (
               <button
                 type="button"
                 key={bg}
                 onClick={() => setSelectedGroup(bg)}
-                className={`py-3 rounded-xl font-black text-lg border-2 transition-all ${
+                className={`py-3 rounded-2xl font-black text-lg border-2 transition-all ${
                   selectedGroup === bg 
-                    ? 'border-red-500 bg-red-50 text-red-600 shadow-sm scale-102' 
+                    ? 'border-red-600 bg-red-50 text-red-600 shadow-sm scale-102' 
                     : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
                 }`}
               >
@@ -215,116 +268,112 @@ const CreateRequestPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Units Required */}
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-2">
-          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide">Units Required *</label>
-          <div className="flex items-center space-x-4 bg-gray-50 p-2 border border-gray-200 rounded-xl w-44 justify-between">
-            <button 
-              type="button" 
-              onClick={() => setUnits(Math.max(1, units - 1))} 
-              className="w-10 h-10 rounded-lg bg-white shadow-sm font-bold text-lg text-gray-700 hover:bg-gray-100 active:scale-95"
-            >
-              -
-            </button>
-            <span className="font-black text-xl text-gray-900">{units} {units === 1 ? 'Unit' : 'Units'}</span>
-            <button 
-              type="button" 
-              onClick={() => setUnits(units + 1)} 
-              className="w-10 h-10 rounded-lg bg-white shadow-sm font-bold text-lg text-gray-700 hover:bg-gray-100 active:scale-95"
-            >
-              +
-            </button>
+        {/* Units Required & Urgency */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 space-y-2">
+            <label className="block text-xs font-black text-gray-700 uppercase tracking-wide">Units Required *</label>
+            <div className="flex items-center space-x-3 bg-gray-50 p-2 border border-gray-200 rounded-xl justify-between">
+              <button 
+                type="button" 
+                onClick={() => setUnits(Math.max(1, units - 1))} 
+                className="w-9 h-9 rounded-lg bg-white shadow-sm font-bold text-lg text-gray-700 hover:bg-gray-100"
+              >
+                -
+              </button>
+              <span className="font-black text-lg text-gray-900">{units} {units === 1 ? 'Unit' : 'Units'}</span>
+              <button 
+                type="button" 
+                onClick={() => setUnits(units + 1)} 
+                className="w-9 h-9 rounded-lg bg-white shadow-sm font-bold text-lg text-gray-700 hover:bg-gray-100"
+              >
+                +
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 space-y-2">
+            <label className="block text-xs font-black text-gray-700 uppercase tracking-wide">Urgency Level *</label>
+            <div className="flex gap-2">
+              {(['Normal', 'Urgent', 'Critical'] as const).map(lvl => (
+                <button
+                  type="button"
+                  key={lvl}
+                  onClick={() => setUrgency(lvl)}
+                  className={`flex-1 py-2.5 rounded-xl text-xs font-black border transition-all ${
+                    urgency === lvl 
+                      ? lvl === 'Critical' ? 'bg-red-600 text-white border-red-600 shadow-sm' :
+                        lvl === 'Urgent' ? 'bg-orange-500 text-white border-orange-500 shadow-sm' :
+                        'bg-blue-600 text-white border-blue-600 shadow-sm'
+                      : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  {lvl}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Urgency */}
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-3">
-          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide">Urgency Level *</label>
-          <div className="space-y-2">
-            <label className={`flex items-center p-3.5 border-2 rounded-xl cursor-pointer transition-all ${urgency === 'Normal' ? 'border-blue-500 bg-blue-50/50' : 'border-gray-200 bg-white'}`}>
-              <input type="radio" name="urgency" checked={urgency === 'Normal'} onChange={() => setUrgency('Normal')} className="mr-3 w-4 h-4 text-blue-600 focus:ring-blue-500" />
-              <div>
-                <div className="font-bold text-blue-900 text-sm">Normal</div>
-                <div className="text-xs text-blue-700">Needed within 24-48 hours</div>
-              </div>
-            </label>
-
-            <label className={`flex items-center p-3.5 border-2 rounded-xl cursor-pointer transition-all ${urgency === 'Urgent' ? 'border-orange-500 bg-orange-50/50' : 'border-gray-200 bg-white'}`}>
-              <input type="radio" name="urgency" checked={urgency === 'Urgent'} onChange={() => setUrgency('Urgent')} className="mr-3 w-4 h-4 text-orange-600 focus:ring-orange-500" />
-              <div>
-                <div className="font-bold text-orange-900 text-sm">Urgent</div>
-                <div className="text-xs text-orange-700">Needed within 6-12 hours</div>
-              </div>
-            </label>
-
-            <label className={`flex items-center p-3.5 border-2 rounded-xl cursor-pointer transition-all ${urgency === 'Critical' ? 'border-red-500 bg-red-50/50' : 'border-gray-200 bg-white'}`}>
-              <input type="radio" name="urgency" checked={urgency === 'Critical'} onChange={() => setUrgency('Critical')} className="mr-3 w-4 h-4 text-red-600 focus:ring-red-500" />
-              <div>
-                <div className="font-bold text-red-900 text-sm">Critical</div>
-                <div className="text-xs text-red-700">Needed Immediately ({'<'} 2 hours)</div>
-              </div>
-            </label>
-          </div>
-        </div>
-
-        {/* Patient Details */}
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4">
-          <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1">Patient Reference ID</label>
-            <input 
-              type="text" 
-              value={patientRef}
-              onChange={(e) => setPatientRef(e.target.value)}
-              placeholder="e.g. PAT-12345 (Leave blank for auto-id)" 
-              className="w-full bg-gray-50 text-gray-900 font-medium placeholder:text-gray-400 border border-gray-300 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all" 
-            />
-            <p className="text-xs text-gray-500 mt-1">Do NOT enter real patient names for medical privacy.</p>
-          </div>
-          
-          <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1">Department / Ward</label>
-            <input 
-              type="text" 
-              value={department}
-              onChange={(e) => setDepartment(e.target.value)}
-              placeholder="e.g. ICU, Emergency Trauma, Surgical" 
-              className="w-full bg-gray-50 text-gray-900 font-medium placeholder:text-gray-400 border border-gray-300 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all" 
-            />
+        {/* Clinical / Ward Details */}
+        <div className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-black text-gray-700 mb-1">Patient Reference ID</label>
+              <input 
+                type="text" 
+                value={patientRef}
+                onChange={(e) => setPatientRef(e.target.value)}
+                placeholder="e.g. PAT-9821" 
+                className="w-full bg-gray-50 text-gray-900 font-medium placeholder:text-gray-400 border border-gray-300 rounded-xl px-4 py-2.5 focus:bg-white text-xs outline-none" 
+              />
+            </div>
+            
+            <div>
+              <label className="block text-xs font-black text-gray-700 mb-1">Department / Ward</label>
+              <input 
+                type="text" 
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+                placeholder="e.g. ICU, Trauma, Surgery" 
+                className="w-full bg-gray-50 text-gray-900 font-medium placeholder:text-gray-400 border border-gray-300 rounded-xl px-4 py-2.5 focus:bg-white text-xs outline-none" 
+              />
+            </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1">Requirement Notes & Instructions</label>
+            <label className="block text-xs font-black text-gray-700 mb-1">Clinical Requisition Notes & Instructions</label>
             <textarea 
               rows={3} 
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Provide any specific requirements, attending physician contact, or blood bank details..." 
-              className="w-full bg-gray-50 text-gray-900 font-medium placeholder:text-gray-400 border border-gray-300 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Provide clinical details, attending physician contact, blood bank room number..." 
+              className="w-full bg-gray-50 text-gray-900 font-medium placeholder:text-gray-400 border border-gray-300 rounded-xl p-3 text-xs outline-none focus:bg-white"
             />
           </div>
         </div>
 
-        <div className="flex items-start bg-amber-50 p-4 rounded-2xl text-xs text-amber-900 border border-amber-200">
-          <AlertTriangle size={20} className="mr-3 mt-0.5 shrink-0 text-amber-600" />
-          <p>
-            Submitting this request will instantly notify all eligible <strong>{selectedGroup}</strong> blood donors in <strong>{city || 'your area'}</strong> with directions to <strong>{hospitalName || 'your hospital'}</strong>.
+        {/* Clinical Warning */}
+        <div className="flex items-start bg-amber-50 p-4 rounded-3xl text-xs text-amber-950 border border-amber-200">
+          <AlertTriangle size={18} className="mr-3 mt-0.5 shrink-0 text-amber-600" />
+          <p className="leading-relaxed">
+            Submitting will initiate the <strong>6-stage emergency response lifecycle</strong> and dispatch push alerts to consenting <strong>{selectedGroup}</strong> donors within your region. Hospital blood bank verification and crossmatching remain strictly mandatory before transfusion.
           </p>
         </div>
 
-        {/* Submission Button */}
+        {/* Submit */}
         <div className="pt-2 pb-6">
           <button 
             type="submit" 
             disabled={loading}
-            className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-2xl font-black text-base shadow-xl active:scale-98 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-2xl font-black text-sm shadow-xl active:scale-98 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
-                <Loader2 size={20} className="animate-spin" />
-                <span>BROADCASTING TO DONORS...</span>
+                <Loader2 size={18} className="animate-spin" />
+                <span>BROADCASTING EMERGENCY REQUISITION...</span>
               </>
             ) : (
-              <span>BROADCAST BLOOD REQUEST</span>
+              <span>BROADCAST EMERGENCY BLOOD REQUISITION 🚨</span>
             )}
           </button>
         </div>

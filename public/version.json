@@ -1,12 +1,13 @@
 {
-  "version": "1.6.0",
-  "buildTime": 1732210000000,
+  "version": "1.7.0",
+  "buildTime": 1732212000000,
   "releaseDate": "2026-11-21",
   "changelog": [
-    "🛡️ Advanced Public Medical QR with secure revocable tokens (/emergency/view/:token) and access logs",
-    "🪪 Printable Emergency Wallet Card & Wearable Wristband Generator with PNG and PDF print formats",
-    "📶 Web NFC Medical Tag Writer with cross-device QR fallback",
-    "📱 1080×2400 Lock Screen Wallpaper Generator with safe-area clock adjustment and AMOLED themes",
-    "💾 Offline Emergency Card synchronization with last-synced timestamp validation"
+    "🗺️ Real-time Live Donor Discovery Map powered by Leaflet & OpenStreetMap",
+    "🛡️ Privacy-first coarsened donor coordinates (±650m) with residential protection",
+    "🧪 Authoritative Red Blood Cell (RBC) compatibility matrix & interactive matcher",
+    "🚨 6-Stage Emergency Requisition Lifecycle (Created → Notified → Responded → Contacted → Fulfilled)",
+    "📦 Support for specific blood components (PRBC, Platelets, FFP, Cryoprecipitate, Whole Blood)",
+    "🚫 Anti-spam protection & NBTC non-commercial donor safety reporting"
   ]
 }
