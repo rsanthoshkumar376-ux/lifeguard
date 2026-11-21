@@ -1,11 +1,11 @@
 {
-  "version": "1.4.0",
-  "buildTime": 1732200000000,
+  "version": "1.5.0",
+  "buildTime": 1732205000000,
   "releaseDate": "2026-11-21",
   "changelog": [
-    "📱 1-Click HD Lock Screen Wallpaper Generator with AMOLED black and Medical theme styling",
-    "🫀 Offline First-Aid & CPR Audio Metronome at 110 BPM with life-saving protocols",
-    "🛡️ Fixed Emergency QR Link Access: Always accessible without Access Denied errors",
-    "🚨 Direct 1-Tap Emergency Icon displays Scannable Medical QR Code and Important Notes"
+    "🫀 Offline First-Aid & CPR Assistance Center with 9 interactive protocols and AHA 100–120 BPM Metronome",
+    "🗣️ Full 6-language support: English, தமிழ், हिन्दी, తెలుగు, ಕನ್ನಡ, and മലയാളം",
+    "✈️ 100% Offline PWA capability with precached guides, vector SVG illustrations, and Web Audio synthesizer",
+    "🚨 Advanced Emergency Response System: Smart accident detection, live GPS tracking, and SMS fallback"
   ]
 }

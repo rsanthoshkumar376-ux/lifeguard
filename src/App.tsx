@@ -24,6 +24,7 @@ const NotificationsPage = React.lazy(() => import('./pages/NotificationsPage'));
 const SettingsPage = React.lazy(() => import('./pages/profile/SettingsPage'));
 const AiChatPage = React.lazy(() => import('./pages/ai/AiChatPage'));
 const ResetAppPage = React.lazy(() => import('./pages/ResetAppPage'));
+const FirstAidPage = React.lazy(() => import('./pages/FirstAidPage'));
 
 // Admin pages
 const AdminDashboard = React.lazy(() => import('./pages/admin/AdminDashboard'));
@@ -93,6 +94,12 @@ const App: React.FC = () => {
           {/* SOS Emergency aliases */}
           <Route path="/emergency/sos" element={<SosPage />} />
           <Route path="/sos" element={<SosPage />} />
+
+          {/* Offline First-Aid & CPR Center */}
+          <Route path="/first-aid" element={<FirstAidPage />} />
+          <Route path="/firstaid" element={<FirstAidPage />} />
+          <Route path="/cpr" element={<FirstAidPage />} />
+          <Route path="/emergency/first-aid" element={<FirstAidPage />} />
           
           {/* Hospitals */}
           <Route path="/nearby-hospitals" element={<NearbyHospitalsPage />} />

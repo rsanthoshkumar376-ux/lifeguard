@@ -25,7 +25,8 @@
     "scanQr": "Scan QR Code",
     "callAmbulance": "Call Ambulance",
     "notifyContacts": "Notify Emergency Contacts",
-    "viewProfile": "View Emergency Profile"
+    "viewProfile": "View Emergency Profile",
+    "firstAid": "First-Aid & CPR Center"
   },
   "blood": {
     "request": "Request Blood",

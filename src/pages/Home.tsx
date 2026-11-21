@@ -367,29 +367,37 @@ const Home: React.FC = () => {
         </div>
 
         {/* Quick Lock Screen Icon, Wallpaper Generator & CPR First-Aid Triggers */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <Link
+            to="/first-aid"
+            className="py-2.5 px-3 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white rounded-xl text-xs font-black shadow flex items-center justify-center gap-1.5 active:scale-95 transition-all text-center col-span-2 sm:col-span-1"
+          >
+            <HeartPulse size={14} className="text-white animate-pulse" />
+            <span>📖 Offline First-Aid Center</span>
+          </Link>
+
           <button
             onClick={() => setShowWallpaperGenerator(true)}
-            className="py-2.5 px-3 bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-600 hover:to-rose-700 text-white rounded-xl text-xs font-black shadow flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer"
+            className="py-2.5 px-3 bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-600 hover:to-rose-700 text-white rounded-xl text-xs font-black shadow flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer text-center"
           >
             <Sparkles size={14} className="text-amber-200" />
-            <span>🖼️ 1-Click HD Lock Wallpaper</span>
+            <span>🖼️ Lock Wallpaper</span>
           </button>
 
           <button
             onClick={() => setShowCprFirstAid(true)}
-            className="py-2.5 px-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-black shadow flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer"
+            className="py-2.5 px-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-black shadow flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer text-center"
           >
             <HeartPulse size={14} className="text-white animate-pulse" />
-            <span>🫀 CPR Audio Metronome</span>
+            <span>🫀 CPR Metronome</span>
           </button>
 
           <button
             onClick={() => setShowLockScreenGuide(true)}
-            className="py-2.5 px-3 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl text-xs font-bold text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 flex items-center justify-center gap-1.5 shadow-xs active:scale-95 transition-all cursor-pointer"
+            className="py-2.5 px-3 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl text-xs font-bold text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 flex items-center justify-center gap-1.5 shadow-xs active:scale-95 transition-all cursor-pointer text-center"
           >
             <Smartphone size={14} className="text-red-600 dark:text-red-400" />
-            <span>📱 Lock Screen Guide</span>
+            <span>📱 Lock Guide</span>
           </button>
         </div>
 
