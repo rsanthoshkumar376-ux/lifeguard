@@ -101,9 +101,13 @@ const App: React.FC = () => {
           <Route path="/cpr" element={<FirstAidPage />} />
           <Route path="/emergency/first-aid" element={<FirstAidPage />} />
           
-          {/* Hospitals */}
+          {/* Hospitals & Blood Banks */}
           <Route path="/nearby-hospitals" element={<NearbyHospitalsPage />} />
           <Route path="/hospitals" element={<NearbyHospitalsPage />} />
+          <Route path="/blood-banks" element={<NearbyHospitalsPage />} />
+          <Route path="/blood-bank" element={<NearbyHospitalsPage />} />
+          <Route path="/handover" element={<NearbyHospitalsPage />} />
+          <Route path="/emergency/handover" element={<NearbyHospitalsPage />} />
           
           {/* Common tabs */}
           <Route path="/activity" element={<ActivityPage />} />

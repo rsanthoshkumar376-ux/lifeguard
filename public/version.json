@@ -1,13 +1,13 @@
 {
-  "version": "1.7.0",
-  "buildTime": 1732212000000,
+  "version": "1.8.0",
+  "buildTime": 1732214000000,
   "releaseDate": "2026-11-21",
   "changelog": [
-    "🗺️ Real-time Live Donor Discovery Map powered by Leaflet & OpenStreetMap",
-    "🛡️ Privacy-first coarsened donor coordinates (±650m) with residential protection",
-    "🧪 Authoritative Red Blood Cell (RBC) compatibility matrix & interactive matcher",
-    "🚨 6-Stage Emergency Requisition Lifecycle (Created → Notified → Responded → Contacted → Fulfilled)",
-    "📦 Support for specific blood components (PRBC, Platelets, FFP, Cryoprecipitate, Whole Blood)",
-    "🚫 Anti-spam protection & NBTC non-commercial donor safety reporting"
+    "🏥 Complete Hospital & Blood Bank Management Network",
+    "📋 Verified Healthcare Directory with 24/7 ER availability and map links",
+    "🩸 Licensed Blood Bank Directory with real-time stock freshness indicators",
+    "📦 Blood Bank Inventory Management with batch tracking and component expiry timers",
+    "🚑 Emergency Patient Handover Protocol (SBAR summary with Medical ID, vitals, and SOS timeline)",
+    "🛡️ Statutory hospital registration workflow and 90-day periodic verification review system"
   ]
 }
