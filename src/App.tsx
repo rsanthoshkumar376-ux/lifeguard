@@ -12,6 +12,7 @@ const SosPage = React.lazy(() => import('./pages/emergency/SosPage'));
 const MedicalProfilePage = React.lazy(() => import('./pages/profile/MedicalProfilePage'));
 const MedicalRecordsPage = React.lazy(() => import('./pages/profile/MedicalRecordsPage'));
 const HealthRecordsPage = React.lazy(() => import('./pages/health/HealthRecordsPage'));
+const MedicineTrackerPage = React.lazy(() => import('./pages/meds/MedicineTrackerPage'));
 const QrCodePage = React.lazy(() => import('./pages/qr/QrCodePage'));
 const BloodRequestsPage = React.lazy(() => import('./pages/blood/BloodRequestsPage'));
 const BloodRequestDetailPage = React.lazy(() => import('./pages/blood/BloodRequestDetailPage'));
@@ -83,6 +84,13 @@ const App: React.FC = () => {
           <Route path="/records" element={<HealthRecordsPage />} />
           <Route path="/my-health" element={<HealthRecordsPage />} />
           <Route path="/ehr" element={<HealthRecordsPage />} />
+          
+          {/* Medicine Management & Appointments */}
+          <Route path="/medicines" element={<MedicineTrackerPage />} />
+          <Route path="/medications" element={<MedicineTrackerPage />} />
+          <Route path="/appointments" element={<MedicineTrackerPage />} />
+          <Route path="/medicine-tracker" element={<MedicineTrackerPage />} />
+          <Route path="/pill-tracker" element={<MedicineTrackerPage />} />
           
           {/* QR Code aliases */}
           <Route path="/qr" element={<QrCodePage />} />

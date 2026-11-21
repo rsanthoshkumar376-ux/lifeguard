@@ -1,15 +1,16 @@
 {
-  "version": "1.10.0",
-  "buildTime": 1732219000000,
+  "version": "1.11.0",
+  "buildTime": 1732222000000,
   "releaseDate": "2026-11-21",
   "changelog": [
-    "📁 Complete Digital Health Records Module (/health-records) with EHR / PHR capabilities",
-    "🩺 Personal Medical History tracking: existing conditions, previous surgeries, allergies, family history, and clinical notes",
-    "📑 Secure Medical Documents Archive: PDF and image upload for lab reports, prescriptions, discharge slips, and scans with magic-byte validation",
-    "⏳ Chronological Health Timeline: consultations, lab tests, surgeries, medication titrations, and hospital visits",
-    "💓 Continuous Health Vitals: manual logging of BP, Pulse, SpO2, Temperature, and Blood Glucose with AHA/clinical bands",
-    "📈 Interactive Empirical Vitals Charts: historical trend plots with standard clinical reference bands and zero inferencing",
-    "📄 Printable Doctor Consultation Summary: physician-ready PDF export with full clinical dossier and signature block",
-    "🔐 Strict Privacy & Caregiver Access Management: cryptographic client-side encryption and authorized caregiver permissions"
+    "💊 Medicine Management & Prescription Regimens (/medicines, /medications) with meal timing, frequency, and custom reminder slots",
+    "🛡️ Prescription Trust Verification Badge clearly distinguishing doctor-verified prescriptions from user-entered schedules with zero silent dosage modifications",
+    "✅ Daily Medication Dosing Tracker with 1-tap logging for Taken, Missed, Skipped (with clinical reason), and Pending doses",
+    "🔔 Multi-Platform Reminders: Web Notifications, PWA service worker push, pleasant Web Audio dual-tone chime, and transparent platform limitation guidance",
+    "📦 Pill Inventory & Pharmacy Refill Alerts with auto-decrement on taken dose and low-stock threshold triggers",
+    "🏥 Hospital Appointment Scheduling (/appointments) with hospital directory integration, attending doctor & specialty, and attached diagnostic reports",
+    "🗓️ Automated Follow-Up Reminders (1-day before and 2-hours before) with Google Maps clinic directions",
+    "📊 Real-time Adherence Analytics tracking 7-day therapeutic compliance rates and dose history",
+    "🔒 Secure Caregiver Delegation & Firestore Rules for medicine management and appointment records"
   ]
 }

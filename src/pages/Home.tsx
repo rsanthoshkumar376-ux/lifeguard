@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Bell, HeartPulse, Droplet, Users, Hospital, Droplets, Activity, Settings, PhoneCall, LogIn, Download, Smartphone, X, Globe, Sparkles, Moon, Sun, Bot, Camera, RefreshCw, QrCode, Pin, FileText } from 'lucide-react';
+import { Bell, HeartPulse, Droplet, Users, Hospital, Droplets, Activity, Settings, PhoneCall, LogIn, Download, Smartphone, X, Globe, Sparkles, Moon, Sun, Bot, Camera, RefreshCw, QrCode, Pin, FileText, Pill } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
@@ -431,6 +431,11 @@ const Home: React.FC = () => {
           <Link to="/health-records" className="bg-indigo-600 hover:bg-indigo-700 text-white h-24 rounded-2xl flex flex-col items-center justify-center p-2 shadow active:scale-95 transition-transform text-center">
              <FileText size={28} className="mb-1 shrink-0" />
              <span className="font-bold text-xs sm:text-sm leading-tight px-1">Health Records</span>
+          </Link>
+
+          <Link to="/medicines" className="bg-teal-700 hover:bg-teal-800 text-white h-24 rounded-2xl flex flex-col items-center justify-center p-2 shadow active:scale-95 transition-transform text-center">
+             <Pill size={28} className="mb-1 shrink-0" />
+             <span className="font-bold text-xs sm:text-sm leading-tight px-1">Medicine & Visits</span>
           </Link>
 
           <Link to="/nearby-hospitals" className="bg-emerald-600 hover:bg-emerald-700 text-white h-24 rounded-2xl flex flex-col items-center justify-center p-2 shadow active:scale-95 transition-transform text-center">

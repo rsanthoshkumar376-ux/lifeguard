@@ -99,6 +99,45 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------
+    // MEDICINE MANAGEMENT & HOSPITAL APPOINTMENTS
+    // ---------------------------------------------------------
+
+    match /users/{userId}/medicineManagement/{docId} {
+      // Allow read if owner or authorized caregiver (active or registered)
+      allow read: if isOwner(userId) || (
+        isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)) && 
+        (
+          !('status' in get(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)).data) || 
+          get(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)).data.status in ['active', 'registered']
+        )
+      );
+
+      // Allow write if owner or active caregiver with manage_records role
+      allow write: if isOwner(userId) || (
+        isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)) && 
+        get(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)).data.role == 'manage_records' && 
+        get(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)).data.status == 'active'
+      );
+    }
+
+    match /users/{userId}/appointments/{appointmentId} {
+      // Allow read if owner, hospital staff, admin, or authorized caregiver (active or registered)
+      allow read: if isOwner(userId) || isHospitalStaff() || isAdmin() || (
+        isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)) && 
+        (
+          !('status' in get(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)).data) || 
+          get(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)).data.status in ['active', 'registered']
+        )
+      );
+
+      // Allow write if owner, hospital staff, or admin
+      allow write: if isOwner(userId) || isHospitalStaff() || isAdmin();
+    }
+
+    // ---------------------------------------------------------
     // DONORS
     // ---------------------------------------------------------
     

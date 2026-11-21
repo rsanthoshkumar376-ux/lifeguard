@@ -4,7 +4,7 @@ import {
   FileText, Activity, Heart, HeartPulse, Droplet, Thermometer, Plus, UploadCloud, 
   Calendar, Clock, Shield, Lock, AlertTriangle, Stethoscope, Search, 
   Filter, Trash2, ExternalLink, Printer, CheckCircle2, ChevronRight,
-  Sparkles, Scissors, Users, AlertCircle, Eye, Download, Info
+  Sparkles, Scissors, Users, AlertCircle, Eye, Download, Info, Pill
 } from 'lucide-react';
 import { 
   DigitalHealthProfile, 
@@ -232,6 +232,13 @@ const HealthRecordsPage: React.FC = () => {
         >
           <Stethoscope size={15} /> Medical History
         </button>
+
+        <Link
+          to="/medicines"
+          className="px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/40 hover:bg-teal-100"
+        >
+          <Pill size={15} /> Medicine Schedule ↗
+        </Link>
       </div>
 
       {/* ========================================================================= */}
