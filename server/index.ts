@@ -8,6 +8,7 @@ import { emergencyRouter } from './routes/emergency';
 import { bloodRouter } from './routes/blood';
 import { hospitalsRouter } from './routes/hospitals';
 import { adminRouter } from './routes/admin';
+import { aiRouter } from './routes/ai';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -22,6 +23,7 @@ app.use('/api/emergency', emergencyRouter);
 app.use('/api/blood', bloodRouter);
 app.use('/api/hospitals', hospitalsRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/ai', aiRouter);
 
 // Health check endpoint for Render
 app.get('/health', (req, res) => {

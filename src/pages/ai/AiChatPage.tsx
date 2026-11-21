@@ -3,40 +3,82 @@ import {
   ArrowLeft, Send, Mic, MicOff, Volume2, VolumeX, Trash2, 
   Bot, User, PhoneCall, AlertTriangle, Phone, 
   Droplets, Hospital, ShieldAlert, FileText, Globe, 
-  Radio, X, CheckCircle2, ChevronDown
+  Radio, X, CheckCircle2, ChevronDown, Download, Paperclip, 
+  Sparkles, Pill, Stethoscope, Share2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  ChatMessage, getSavedChatHistory, saveChatHistory, 
-  clearChatHistory, getAiChatResponse, SUPPORTED_LANGUAGES 
+  ChatMessage, 
+  SUPPORTED_LANGUAGES 
 } from '../../services/aiChatService';
-import AiReportModal from '../../components/medical/AiReportModal';
+import { 
+  sendAiChatMessage, 
+  getSavedChatHistory, 
+  saveChatHistory, 
+  clearChatHistory, 
+  exportChatHistory 
+} from '../../services/geminiAiService';
+import MedicalReportScannerModal from '../../components/ai/MedicalReportScannerModal';
+import PrescriptionScannerModal from '../../components/ai/PrescriptionScannerModal';
 
 const SUGGESTIONS_BY_LANG: Record<string, string[]> = {
   ta: [
     '❤️ CPR எப்படி செய்வது?',
     '🩸 நான் இரத்த தானம் செய்யலாமா?',
+    '📄 ஆய்வக அறிக்கையை விளக்குங்கள்',
+    '💊 எனது மருந்துச் சீட்டை ஸ்கேன் செய்',
     '🩹 அதிக இரத்தப்போக்கு முதலுதவி',
     '🔥 தீக்காயத்திற்கு என்ன முதலுதவி?',
     '🐕 நாய் கடித்தால் என்ன செய்ய வேண்டும்?',
-    '🌡️ கடுமையான காய்ச்சல் & டெங்கு',
-    '🌀 தலைசுற்றல் / மயக்கம் முதலுதவி'
+    '🌡️ கடுமையான காய்ச்சல் & டெங்கு'
   ],
   hi: [
     '❤️ सीपीआर (CPR) कैसे करें?',
     '🩸 क्या मैं रक्तदान कर सकता हूँ?',
+    '📄 लैब रिपोर्ट का अर्थ समझाएं',
+    '💊 दवा का पर्चा स्कैन करें',
     '🩹 खून बहना कैसे रोकें?',
     '🔥 जलने पर तुरंत क्या करें?',
     '🐕 कुत्ते के काटने पर प्राथमिक उपचार',
-    '🌡️ तेज बुखार और डेंगू',
-    '🌀 चक्कर आने पर उपाय'
+    '🌡️ तेज बुखार और डेंगू'
+  ],
+  te: [
+    '❤️ సిపిఆర్ (CPR) ఎలా చేయాలి?',
+    '🩸 నేను రక్తదానం చేయవచ్చా?',
+    '📄 ల్యాబ్ రిపోర్ట్ విశ్లేషణ చేయండి',
+    '💊 ప్రిస్క్రిప్షన్ స్కాన్ చేయండి',
+    '🩹 తీవ్ర రక్తస్రావం ప్రథమ చికిత్స',
+    '🔥 కాలిన గాయాలకు వెంటనే ఏమి చేయాలి?',
+    '🐕 కుక్క కాటుకు ప్రథమ చికిత్స',
+    '🌡️ తీవ్ర జ్వరం & డెంగ్యూ లక్షణాలు'
+  ],
+  kn: [
+    '❤️ ಸಿಪಿಆರ್ (CPR) ಮಾಡುವುದು ಹೇಗೆ?',
+    '🩸 ನಾನು ರಕ್ತದಾನ ಮಾಡಬಹುದೇ?',
+    '📄 ಲ್ಯಾಬ್ ರಿಪೋರ್ಟ್ ವಿವರಣೆ ನೀಡಿ',
+    '💊 ಪ್ರಿಸ್ಕ್ರಿಪ್ಷನ್ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ',
+    '🩹 ತೀವ್ರ ರಕ್ತಸ್ರಾವಕ್ಕೆ ಪ್ರಥಮ ಚಿಕಿತ್ಸೆ',
+    '🔥 ಸುಟ್ಟ ಗಾಯಗಳಿಗೆ ತಕ್ಷಣದ ಚಿಕಿತ್ಸೆ',
+    '🐕 ನಾಯಿ ಕಡಿತಕ್ಕೆ ಪ್ರಥಮ ಚಿಕಿತ್ಸೆ',
+    '🌡️ ತೀವ್ರ ಜ್ವರ ಮತ್ತು ಡೆಂಗ್ಯೂ'
+  ],
+  ml: [
+    '❤️ സി.പി.ആർ (CPR) എങ്ങനെ ചെയ്യണം?',
+    '🩸 എനിക്ക് രക്തം ദാനം ചെയ്യാമോ?',
+    '📄 ലാബ് റിപ്പോർട്ട് വിശദീകരിക്കുക',
+    '💊 പ്രിസ്ക്രിപ്ഷൻ സ്കാൻ ചെയ്യുക',
+    '🩹 രക്തസ്രാവം തടയാൻ പ്രഥമശുശ്രൂഷ',
+    '🔥 പൊള്ളലേറ്റാൽ എന്ത് ചെയ്യണം?',
+    '🐕 പട്ടി കടിച്ചാൽ പ്രഥമശുശ്രൂഷ',
+    '🌡️ കഠിനമായ പനിയും ഡെങ്കിയും'
   ],
   en: [
     '❤️ CPR step-by-step instructions',
     '🩸 Am I eligible to donate blood?',
+    '📄 Scan and explain my lab report',
+    '💊 Scan prescription & check dosages',
     '🩹 First aid for severe bleeding',
     '🔥 How to treat burns safely',
-    '🩸 Blood group compatibility chart',
     '🐕 Animal bite first aid',
     '🌡️ High fever & dengue guidance'
   ]
@@ -53,8 +95,10 @@ const AiChatPage: React.FC = () => {
   const [autoSpeak, setAutoSpeak] = useState(false);
   const [isVoiceCallMode, setIsVoiceCallMode] = useState(false);
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
-  const [isAiReportModalOpen, setIsAiReportModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
   const [activeSpeakingId, setActiveSpeakingId] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -111,6 +155,11 @@ const AiChatPage: React.FC = () => {
       recognitionRef.current = recognition;
     }
   }, [selectedLang]);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
 
   const toggleListening = () => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -199,7 +248,7 @@ const AiChatPage: React.FC = () => {
     setIsTyping(true);
 
     try {
-      const botResponse = await getAiChatResponse(query, selectedLang.code);
+      const botResponse = await sendAiChatMessage(query, selectedLang.code, newHistory);
       const updated = [...newHistory, botResponse];
       setMessages(updated);
       saveChatHistory(updated);
@@ -219,7 +268,13 @@ const AiChatPage: React.FC = () => {
       if ('speechSynthesis' in window) window.speechSynthesis.cancel();
       clearChatHistory();
       setMessages(getSavedChatHistory(selectedLang.code));
+      showToast('Conversation history cleared.');
     }
+  };
+
+  const handleExportHistory = (format: 'markdown' | 'json') => {
+    exportChatHistory(messages, format);
+    showToast(`Chat exported as ${format.toUpperCase()}`);
   };
 
   const handleActionClick = (actionType: string) => {
@@ -237,7 +292,10 @@ const AiChatPage: React.FC = () => {
         navigate('/nearby-hospitals');
         break;
       case 'upload_report':
-        setIsAiReportModalOpen(true);
+        setIsReportModalOpen(true);
+        break;
+      case 'open_prescription':
+        setIsPrescriptionModalOpen(true);
         break;
       default:
         break;
@@ -248,6 +306,15 @@ const AiChatPage: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-gray-100 transition-colors relative">
+      
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-slate-900 text-white text-xs font-semibold rounded-full shadow-lg border border-slate-700 animate-fade-in flex items-center gap-2">
+          <CheckCircle2 size={14} className="text-emerald-400" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       {/* Top Header */}
       <header className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 p-3 sticky top-0 z-20 flex items-center justify-between shadow-sm shrink-0">
         <div className="flex items-center space-x-2">
@@ -266,11 +333,16 @@ const AiChatPage: React.FC = () => {
               <div className="flex items-center gap-1.5">
                 <h1 className="font-black text-sm text-gray-900 dark:text-white leading-tight">LifeGuard AI</h1>
                 <span className="bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 text-[10px] font-black px-1.5 py-0.2 rounded-md border border-emerald-300 dark:border-emerald-800">
-                  ONLINE
+                  Gemini 3.8 Flash
                 </span>
               </div>
               <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                {selectedLang.code === 'ta' ? 'தமிழ் மருத்துவ உதவியாளர்' : selectedLang.code === 'hi' ? 'हिंदी चिकित्सा सहायक' : 'Medical & Blood Assistant'}
+                {selectedLang.code === 'ta' ? 'தமிழ் மருத்துவ உதவியாளர்' : 
+                 selectedLang.code === 'hi' ? 'हिंदी चिकित्सा सहायक' : 
+                 selectedLang.code === 'te' ? 'తెలుగు క్లినికల్ అసిస్టెంట్' :
+                 selectedLang.code === 'kn' ? 'ಕನ್ನಡ ವೈದ್ಯಕೀಯ ಸಹಾಯಕ' :
+                 selectedLang.code === 'ml' ? 'മലയാളം ക്ലിനിക്കൽ സഹായി' : 
+                 'Multimodal Medical Assistant'}
               </p>
             </div>
           </div>
@@ -278,6 +350,7 @@ const AiChatPage: React.FC = () => {
 
         {/* Action Controls */}
         <div className="flex items-center space-x-1 sm:space-x-1.5 relative">
+          
           {/* Language Switcher Pill */}
           <button
             onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
@@ -291,9 +364,9 @@ const AiChatPage: React.FC = () => {
 
           {/* Language Dropdown Menu */}
           {isLangMenuOpen && (
-            <div className="absolute top-11 right-12 z-50 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-2xl p-1.5 w-44 space-y-1 animate-in fade-in">
+            <div className="absolute top-11 right-16 z-50 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-2xl p-1.5 w-48 space-y-1 animate-in fade-in">
               <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase px-2 py-1 block">
-                Select Language:
+                Select Language (6 Supported):
               </span>
               {SUPPORTED_LANGUAGES.map((lang) => (
                 <button
@@ -344,6 +417,15 @@ const AiChatPage: React.FC = () => {
             {autoSpeak ? <Volume2 size={16} /> : <VolumeX size={16} />}
           </button>
 
+          {/* Export Chat */}
+          <button
+            onClick={() => handleExportHistory('markdown')}
+            className="p-2 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+            title="Export Conversation to Markdown"
+          >
+            <Download size={16} />
+          </button>
+
           {/* Clear History */}
           <button
             onClick={handleClearHistory}
@@ -355,16 +437,51 @@ const AiChatPage: React.FC = () => {
         </div>
       </header>
 
+      {/* Feature Quick Launch Toolbar */}
+      <div className="bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800 px-3 py-2 flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0 shadow-sm">
+        <button
+          onClick={() => setIsReportModalOpen(true)}
+          className="px-3 py-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800 hover:bg-teal-100 text-xs font-bold flex items-center gap-1.5 shrink-0 transition-colors"
+        >
+          <FileText size={14} className="text-teal-600" />
+          <span>Scan Lab Report</span>
+        </button>
+
+        <button
+          onClick={() => setIsPrescriptionModalOpen(true)}
+          className="px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 text-xs font-bold flex items-center gap-1.5 shrink-0 transition-colors"
+        >
+          <Pill size={14} className="text-blue-600" />
+          <span>Scan Prescription</span>
+        </button>
+
+        <button
+          onClick={() => handleSend("Please guide me on how to prepare for an upcoming doctor consultation. What symptom records, previous reports, and questions should I carry?")}
+          className="px-3 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 hover:bg-purple-100 text-xs font-bold flex items-center gap-1.5 shrink-0 transition-colors"
+        >
+          <Stethoscope size={14} className="text-purple-600" />
+          <span>Doctor Visit Prep</span>
+        </button>
+
+        <a
+          href="tel:108"
+          className="px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold flex items-center gap-1.5 shrink-0 transition-colors ml-auto shadow-sm"
+        >
+          <PhoneCall size={13} />
+          <span>Ambulance 108</span>
+        </a>
+      </div>
+
       {/* Safety Notice Strip */}
       <div className="bg-amber-50 dark:bg-amber-950/30 border-b border-amber-200/60 dark:border-amber-900/40 px-3.5 py-1 text-[11px] text-amber-800 dark:text-amber-300 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-1.5">
           <AlertTriangle size={13} className="shrink-0 text-amber-600" />
           <span>
             {selectedLang.code === 'ta'
-              ? 'உடனடி மருத்துவ ஆலோசனை. உயிருக்கு ஆபத்தான நிலையில் 108-ஐ அழைக்கவும்.'
+              ? 'மருத்துவ கல்வி ஆலோசனை. உயிருக்கு ஆபத்தான நிலையில் 108 ஐ அழைக்கவும்.'
               : selectedLang.code === 'hi'
               ? 'त्वरित चिकित्सा सलाह। आपातकाल में तुरंत 108 पर कॉल करें।'
-              : 'Instant medical guidance. For life threats, dial 108 immediately.'}
+              : 'Informational clinical AI. Never delay emergency hospital dispatch or 108 ambulance call.'}
           </span>
         </div>
         <a href="tel:108" className="font-black underline text-red-600 ml-2 shrink-0">108</a>
@@ -456,7 +573,8 @@ const AiChatPage: React.FC = () => {
                         {act.actionType === 'sos' && <ShieldAlert size={13} />}
                         {act.actionType === 'view_blood_requests' && <Droplets size={13} className="text-red-500" />}
                         {act.actionType === 'nearby_hospitals' && <Hospital size={13} className="text-blue-500" />}
-                        {act.actionType === 'upload_report' && <FileText size={13} className="text-indigo-500" />}
+                        {act.actionType === 'upload_report' && <FileText size={13} className="text-teal-500" />}
+                        {act.actionType === 'open_prescription' && <Pill size={13} className="text-blue-500" />}
                         <span>{act.label}</span>
                       </button>
                     ))}
@@ -482,7 +600,7 @@ const AiChatPage: React.FC = () => {
                   ? 'LifeGuard AI மருத்துவ நெறிமுறைகளை ஆய்வு செய்கிறது...'
                   : selectedLang.code === 'hi'
                   ? 'LifeGuard AI चिकित्सा जांच कर रहा है...'
-                  : 'LifeGuard AI is reviewing medical protocols...'}
+                  : 'LifeGuard AI is evaluating clinical parameters...'}
               </span>
             </div>
           </div>
@@ -536,6 +654,16 @@ const AiChatPage: React.FC = () => {
           }}
           className="flex items-center gap-2 bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-2xl p-1.5 focus-within:ring-2 focus-within:ring-red-500 focus-within:border-transparent transition-all shadow-inner"
         >
+          {/* Quick Attachment Button */}
+          <button
+            type="button"
+            onClick={() => setIsReportModalOpen(true)}
+            className="p-2.5 rounded-xl text-gray-500 hover:text-teal-600 dark:hover:text-teal-400 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors shrink-0"
+            title="Scan Report / Prescription"
+          >
+            <Paperclip size={18} />
+          </button>
+
           {/* Mic Button in Active Language */}
           <button
             type="button"
@@ -557,11 +685,12 @@ const AiChatPage: React.FC = () => {
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             placeholder={
-              selectedLang.code === 'ta' 
-                ? 'தமிழில் அறிகுறிகள் அல்லது கேள்வியை தட்டச்சு செய்யவும்...' 
-                : selectedLang.code === 'hi'
-                ? 'हिंदी में लक्षण या सवाल यहाँ लिखें...'
-                : 'Type symptoms, first aid, or blood question...'
+              selectedLang.code === 'ta' ? 'தமிழில் அறிகுறிகள் அல்லது கேள்வியை தட்டச்சு செய்யவும்...' :
+              selectedLang.code === 'hi' ? 'हिंदी में लक्षण या सवाल यहाँ लिखें...' :
+              selectedLang.code === 'te' ? 'లక్షణాలు లేదా ప్రశ్నలను ఇక్కడ టైప్ చేయండి...' :
+              selectedLang.code === 'kn' ? 'ರೋಗಲಕ್ಷಣಗಳು ಅಥವಾ ಪ್ರಶ್ನೆಗಳನ್ನು ಇಲ್ಲಿ ಟೈಪ್ ಮಾಡಿ...' :
+              selectedLang.code === 'ml' ? 'ലക്ഷണങ്ങളോ ചോദ്യങ്ങളോ ഇവിടെ ടൈപ്പ് ചെയ്യുക...' :
+              'Type symptoms, report questions, or first aid query...'
             }
             className="flex-1 bg-transparent text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 text-sm outline-none px-2 font-medium"
           />
@@ -648,7 +777,6 @@ const AiChatPage: React.FC = () => {
 
           {/* Call Controls */}
           <div className="flex items-center justify-center gap-6 pb-6">
-            {/* Tap to Speak */}
             <button
               onClick={toggleListening}
               className={`w-20 h-20 rounded-full flex flex-col items-center justify-center shadow-2xl active:scale-95 transition-all ${
@@ -661,7 +789,6 @@ const AiChatPage: React.FC = () => {
               <span className="text-[10px] font-bold mt-1">{isListening ? 'Stop' : 'Speak'}</span>
             </button>
 
-            {/* End Call */}
             <button
               onClick={() => {
                 if ('speechSynthesis' in window) window.speechSynthesis.cancel();
@@ -678,9 +805,19 @@ const AiChatPage: React.FC = () => {
       )}
 
       {/* AI Medical Report Analyzer Modal */}
-      <AiReportModal 
-        isOpen={isAiReportModalOpen} 
-        onClose={() => setIsAiReportModalOpen(false)} 
+      <MedicalReportScannerModal 
+        isOpen={isReportModalOpen} 
+        onClose={() => setIsReportModalOpen(false)}
+        language={selectedLang.code}
+        onSendToChat={(summary) => handleSend(summary)}
+      />
+
+      {/* Prescription Scanner Modal */}
+      <PrescriptionScannerModal
+        isOpen={isPrescriptionModalOpen}
+        onClose={() => setIsPrescriptionModalOpen(false)}
+        language={selectedLang.code}
+        onImportSuccess={(count) => showToast(`Added ${count} medication(s) to Medicine Tracker!`)}
       />
     </div>
   );

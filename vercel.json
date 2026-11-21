@@ -21,6 +21,14 @@
   ],
   "rewrites": [
     {
+      "source": "/api/ai/:match*",
+      "destination": "/api/ai?action=:match*"
+    },
+    {
+      "source": "/api/ai",
+      "destination": "/api/ai"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

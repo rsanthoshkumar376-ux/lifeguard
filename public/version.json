@@ -1,16 +1,17 @@
 {
-  "version": "1.11.0",
-  "buildTime": 1732222000000,
+  "version": "1.12.0",
+  "buildTime": 1732244000000,
   "releaseDate": "2026-11-21",
   "changelog": [
-    "💊 Medicine Management & Prescription Regimens (/medicines, /medications) with meal timing, frequency, and custom reminder slots",
-    "🛡️ Prescription Trust Verification Badge clearly distinguishing doctor-verified prescriptions from user-entered schedules with zero silent dosage modifications",
-    "✅ Daily Medication Dosing Tracker with 1-tap logging for Taken, Missed, Skipped (with clinical reason), and Pending doses",
-    "🔔 Multi-Platform Reminders: Web Notifications, PWA service worker push, pleasant Web Audio dual-tone chime, and transparent platform limitation guidance",
-    "📦 Pill Inventory & Pharmacy Refill Alerts with auto-decrement on taken dose and low-stock threshold triggers",
-    "🏥 Hospital Appointment Scheduling (/appointments) with hospital directory integration, attending doctor & specialty, and attached diagnostic reports",
-    "🗓️ Automated Follow-Up Reminders (1-day before and 2-hours before) with Google Maps clinic directions",
-    "📊 Real-time Adherence Analytics tracking 7-day therapeutic compliance rates and dose history",
-    "🔒 Secure Caregiver Delegation & Firestore Rules for medicine management and appointment records"
+    "🤖 Gemini 3.8 Flash Multimodal AI Healthcare Assistant upgrade (/ai-chat)",
+    "📄 AI Medical Report Scanner: Extracts tests, measured values, units, printed reference ranges, and flags abnormal readings",
+    "⚠️ Optical & Handwriting Uncertainty Detection: Displays clear warning indicators for unclear handwriting or low-quality scans",
+    "💡 Plain-Language Medical Explanations: Translates complex clinical terminology, explains what tests measure, and clarifies reference range differences",
+    "🩺 Tailored Questions for Doctor: Generates practical, actionable questions for physician consultations with 1-click clipboard copy",
+    "💊 Multimodal Prescription Scanner: Extracts medicine names, dosages, frequencies, and durations while strictly refusing to invent unreadable drugs",
+    "➕ 1-Click Medicine Schedule Import: Direct sync from scanned prescriptions to the LifeGuard Medicine Tracker",
+    "📝 Doctor Consultation Summary Generator: Synthesizes diagnostic findings into an executive consultation brief with print/PDF support",
+    "🌐 6-Language Support: English, Tamil (தமிழ்), Hindi (हिंदी), Telugu (తెలుగు), Kannada (ಕನ್ನಡ), and Malayalam (മലയാളം) with native voice synthesis and speech recognition",
+    "🔒 Secure Backend Integration & Privacy: Server-side Gemini API endpoints, sliding-window rate limiting, document validation, and encrypted conversation history with markdown/json export"
   ]
 }

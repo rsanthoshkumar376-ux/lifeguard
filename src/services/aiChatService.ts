@@ -7,7 +7,7 @@ export interface ChatMessage {
   triageLevel?: 'INFO' | 'MODERATE' | 'URGENT' | 'CRITICAL_EMERGENCY';
   actionSuggestions?: Array<{
     label: string;
-    actionType: 'call_emergency' | 'view_blood_requests' | 'nearby_hospitals' | 'upload_report' | 'sos';
+    actionType: 'call_emergency' | 'view_blood_requests' | 'nearby_hospitals' | 'upload_report' | 'sos' | 'open_prescription';
     payload?: string;
   }>;
 }
