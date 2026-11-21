@@ -8,6 +8,8 @@ import AiReportModal from '../components/medical/AiReportModal';
 import LanguageModal from '../components/common/LanguageModal';
 import QuickMedicalIdModal from '../components/medical/QuickMedicalIdModal';
 import LockScreenGuideModal from '../components/medical/LockScreenGuideModal';
+import LockScreenGeneratorModal from '../components/medical/LockScreenGeneratorModal';
+import CprFirstAidModal from '../components/medical/CprFirstAidModal';
 import { getMedicalProfile } from '../services/medicalProfile';
 import { subscribeToUpdates, triggerAppUpdate, checkForAppUpdate } from '../services/updateService';
 
@@ -23,6 +25,8 @@ const Home: React.FC = () => {
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
   const [isQuickMedicalIdOpen, setIsQuickMedicalIdOpen] = useState(false);
   const [showLockScreenGuide, setShowLockScreenGuide] = useState(false);
+  const [showWallpaperGenerator, setShowWallpaperGenerator] = useState(false);
+  const [showCprFirstAid, setShowCprFirstAid] = useState(false);
   const [userNotePreview, setUserNotePreview] = useState<string>('');
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [updateVersion, setUpdateVersion] = useState('');
@@ -362,14 +366,30 @@ const Home: React.FC = () => {
           </div>
         </div>
 
-        {/* Quick Lock Screen Icon & Notification Pin Trigger */}
-        <div className="flex gap-2">
+        {/* Quick Lock Screen Icon, Wallpaper Generator & CPR First-Aid Triggers */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <button
+            onClick={() => setShowWallpaperGenerator(true)}
+            className="py-2.5 px-3 bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-600 hover:to-rose-700 text-white rounded-xl text-xs font-black shadow flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer"
+          >
+            <Sparkles size={14} className="text-amber-200" />
+            <span>🖼️ 1-Click HD Lock Wallpaper</span>
+          </button>
+
+          <button
+            onClick={() => setShowCprFirstAid(true)}
+            className="py-2.5 px-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-black shadow flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer"
+          >
+            <HeartPulse size={14} className="text-white animate-pulse" />
+            <span>🫀 CPR Audio Metronome</span>
+          </button>
+
           <button
             onClick={() => setShowLockScreenGuide(true)}
-            className="flex-1 py-2.5 px-3 bg-white dark:bg-slate-900 border border-red-200 dark:border-red-900/60 rounded-xl text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-slate-800 flex items-center justify-center gap-1.5 shadow-xs active:scale-95 transition-all cursor-pointer"
+            className="py-2.5 px-3 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl text-xs font-bold text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 flex items-center justify-center gap-1.5 shadow-xs active:scale-95 transition-all cursor-pointer"
           >
             <Smartphone size={14} className="text-red-600 dark:text-red-400" />
-            <span>📱 Set Lock Screen Icon & Emergency Card</span>
+            <span>📱 Lock Screen Guide</span>
           </button>
         </div>
 
@@ -515,6 +535,23 @@ const Home: React.FC = () => {
         patientName={user?.fullName || 'Patient'}
         bloodGroup="O+"
         pandemicNote={userNotePreview}
+      />
+
+      {/* 1-Click HD Lock Screen Wallpaper Generator Modal */}
+      <LockScreenGeneratorModal
+        isOpen={showWallpaperGenerator}
+        onClose={() => setShowWallpaperGenerator(false)}
+        patientName={user?.fullName || 'Emergency Patient'}
+        bloodGroup="O+"
+        pandemicNote={userNotePreview}
+        primaryContact="+91 98765 43210"
+        qrValue={typeof window !== 'undefined' ? `${window.location.origin}/emergency/view?token=${user?.uid ? 'active-' + user.uid.slice(0, 8) : 'guest-108'}` : 'https://lifeguard-azure.vercel.app'}
+      />
+
+      {/* Offline CPR Metronome & First-Aid Guides Modal */}
+      <CprFirstAidModal
+        isOpen={showCprFirstAid}
+        onClose={() => setShowCprFirstAid(false)}
       />
     </div>
   );

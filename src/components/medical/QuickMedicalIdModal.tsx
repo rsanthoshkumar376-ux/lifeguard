@@ -11,6 +11,7 @@ import { Html5Qrcode } from 'html5-qrcode';
 import { QRCodeSVG } from 'qrcode.react';
 import { pinEmergencyToLockScreen } from '../../services/lockScreenNotification';
 import { LockScreenGuideModal } from './LockScreenGuideModal';
+import LockScreenGeneratorModal from './LockScreenGeneratorModal';
 
 interface QuickMedicalIdModalProps {
   isOpen: boolean;
@@ -53,6 +54,7 @@ export const QuickMedicalIdModal: React.FC<QuickMedicalIdModalProps> = ({ isOpen
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [showLockScreenGuide, setShowLockScreenGuide] = useState(false);
+  const [showWallpaperGenerator, setShowWallpaperGenerator] = useState(false);
   const [pinMessage, setPinMessage] = useState<string | null>(null);
 
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
@@ -372,7 +374,14 @@ export const QuickMedicalIdModal: React.FC<QuickMedicalIdModalProps> = ({ isOpen
 
                 {/* 📌 LOCK SCREEN DIRECT INTEGRATION */}
                 <div className="pt-2 border-t border-gray-100 dark:border-slate-700/80 space-y-2">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <button
+                      onClick={() => setShowWallpaperGenerator(true)}
+                      className="py-2.5 px-3 bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-600 hover:to-rose-700 text-white rounded-xl text-xs font-black shadow flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer"
+                    >
+                      <span>🖼️ 1-Click Wallpaper</span>
+                    </button>
+
                     <button
                       onClick={handlePinLockScreen}
                       className="py-2.5 px-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-black shadow flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer"
@@ -386,7 +395,7 @@ export const QuickMedicalIdModal: React.FC<QuickMedicalIdModalProps> = ({ isOpen
                       className="py-2.5 px-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700/80 text-gray-800 dark:text-gray-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer"
                     >
                       <Smartphone size={14} />
-                      <span>Lock Screen Setup Guide</span>
+                      <span>Setup Guide</span>
                     </button>
                   </div>
 
@@ -611,6 +620,17 @@ export const QuickMedicalIdModal: React.FC<QuickMedicalIdModalProps> = ({ isOpen
         patientName={profile?.name || user?.fullName || 'Patient'}
         bloodGroup={profile?.bloodGroup || 'O+'}
         pandemicNote={profile?.pandemicNote || ''}
+      />
+
+      {/* 1-Click HD Lock Screen Wallpaper Generator Modal */}
+      <LockScreenGeneratorModal
+        isOpen={showWallpaperGenerator}
+        onClose={() => setShowWallpaperGenerator(false)}
+        patientName={profile?.name || user?.fullName || 'Emergency Patient'}
+        bloodGroup={profile?.bloodGroup || 'O+'}
+        pandemicNote={profile?.pandemicNote || ''}
+        primaryContact={contacts[0]?.phone || '+91 98765 43210'}
+        qrValue={typeof window !== 'undefined' ? `${window.location.origin}/emergency/view?token=${user?.uid ? 'active-' + user.uid.slice(0, 8) : 'guest-108'}` : 'https://lifeguard-azure.vercel.app'}
       />
     </div>
   );

@@ -1,12 +1,11 @@
 {
-  "version": "1.3.3",
-  "buildTime": 1727539000000,
-  "releaseDate": "2026-09-28",
+  "version": "1.4.0",
+  "buildTime": 1732200000000,
+  "releaseDate": "2026-11-21",
   "changelog": [
+    "📱 1-Click HD Lock Screen Wallpaper Generator with AMOLED black and Medical theme styling",
+    "🫀 Offline First-Aid & CPR Audio Metronome at 110 BPM with life-saving protocols",
     "🛡️ Fixed Emergency QR Link Access: Always accessible without Access Denied errors",
-    "🚨 Direct 1-Tap Emergency Icon displays Scannable Medical QR Code and Important Notes",
-    "📱 No passwords required - instant access for bystanders, doctors and strangers",
-    "😷 Highlighted pandemic & stranger instructions with 1-tap call 108",
-    "🧹 Cleaned up lock screen wallpaper downloads as requested"
+    "🚨 Direct 1-Tap Emergency Icon displays Scannable Medical QR Code and Important Notes"
   ]
 }
