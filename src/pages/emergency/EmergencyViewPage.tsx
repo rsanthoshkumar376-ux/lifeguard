@@ -17,6 +17,7 @@ const EmergencyViewPage: React.FC = () => {
 
   const [loading, setLoading] = useState(true);
   const [isRevoked, setIsRevoked] = useState(false);
+  const [isRateLimited, setIsRateLimited] = useState(false);
   const [isCached, setIsCached] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
   const [profile, setProfile] = useState<EmergencyTokenData['publicApprovedData'] | null>(null);
@@ -29,6 +30,12 @@ const EmergencyViewPage: React.FC = () => {
     try {
       setLoading(true);
       const res = await validateAndFetchPublicProfile(tokenStr);
+
+      if (res.rateLimited) {
+        setIsRateLimited(true);
+        setProfile(null);
+        return;
+      }
 
       if (res.revoked) {
         setIsRevoked(true);
@@ -73,6 +80,29 @@ const EmergencyViewPage: React.FC = () => {
         <RefreshCw size={36} className="text-red-500 animate-spin mb-3" />
         <h2 className="text-lg font-black tracking-wide">Loading Verified Emergency ID...</h2>
         <p className="text-xs text-slate-400 mt-1">Checking secure public access token</p>
+      </div>
+    );
+  }
+
+  // Rate Limited State
+  if (isRateLimited) {
+    return (
+      <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-16 h-16 bg-amber-950/80 text-amber-500 rounded-3xl flex items-center justify-center mb-4 border border-amber-800">
+          <Clock size={34} />
+        </div>
+        <h2 className="text-2xl font-black text-white">Rate Limit Exceeded</h2>
+        <p className="text-sm text-slate-300 mt-2 max-w-sm leading-relaxed">
+          Too many scan requests received in a short period. Please wait 60 seconds before scanning this Emergency QR again.
+        </p>
+        <div className="mt-6">
+          <a
+            href="tel:108"
+            className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs inline-flex items-center gap-2 shadow-lg"
+          >
+            <PhoneCall size={16} /> Direct Ambulance (108)
+          </a>
+        </div>
       </div>
     );
   }

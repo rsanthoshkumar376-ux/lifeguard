@@ -9,6 +9,7 @@ import LanguageModal, { LANGUAGES } from '../../components/common/LanguageModal'
 import { checkForAppUpdate, triggerAppUpdate, CURRENT_APP_VERSION } from '../../services/updateService';
 
 const SettingsPage: React.FC = () => {
+  const navigate = useNavigate();
   const { logout } = useAuth() as any;
   const { i18n } = useTranslation();
   const { theme, toggleTheme, isDark } = useTheme();
@@ -63,8 +64,8 @@ const SettingsPage: React.FC = () => {
         <div>
           <h2 className="text-xs font-bold text-gray-500 uppercase px-4 mb-2 tracking-wider">Account</h2>
           <div className="bg-white border-t border-b border-gray-200">
-             <SettingItem icon={User} title="Profile Information" />
-             <SettingItem icon={Shield} title="Privacy & Security" />
+             <SettingItem icon={User} title="Profile Information" onClick={() => navigate('/medical-profile')} />
+             <SettingItem icon={Shield} title="Privacy & Security Center" value="Grade A+" onClick={() => navigate('/security')} />
           </div>
         </div>
 

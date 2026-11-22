@@ -3,6 +3,7 @@ import {
   collection, doc, setDoc, getDoc, getDocs, updateDoc, 
   query, where, orderBy, limit, serverTimestamp, addDoc 
 } from 'firebase/firestore';
+import { generateSecureToken } from './cryptoService';
 
 export interface EmergencyTokenData {
   id: string;
@@ -54,13 +55,10 @@ const LOCAL_OFFLINE_CARD_KEY = 'lifeguard_offline_emergency_card';
 const LOCAL_ACCESS_LOGS_KEY = 'lifeguard_emergency_access_logs';
 
 /**
- * Generate a cryptographically secure random token string
+ * Generate a cryptographically secure random token string (256-bit entropy)
  */
 export const generateSecureTokenString = (): string => {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return 'emg_' + crypto.randomUUID().replace(/-/g, '');
-  }
-  return 'emg_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  return generateSecureToken('emg_');
 };
 
 /**
@@ -189,6 +187,20 @@ export const regenerateEmergencyToken = async (
   return await createNewEmergencyToken(userId, approvedData);
 };
 
+const scanRateLimitCache = new Map<string, number[]>();
+
+export const checkQrScanRateLimit = (token: string, maxRequests = 15, windowMs = 60000): boolean => {
+  const now = Date.now();
+  const timestamps = scanRateLimitCache.get(token) || [];
+  const validTimestamps = timestamps.filter(t => now - t < windowMs);
+  if (validTimestamps.length >= maxRequests) {
+    return false; // Rate limit exceeded
+  }
+  validTimestamps.push(now);
+  scanRateLimitCache.set(token, validTimestamps);
+  return true;
+};
+
 /**
  * Revokes the active emergency token.
  */
@@ -201,6 +213,13 @@ export const revokeEmergencyToken = async (tokenId: string): Promise<boolean> =>
         parsed.active = false;
         parsed.revokedAt = new Date().toISOString();
         localStorage.setItem(LOCAL_ACTIVE_TOKEN_KEY, JSON.stringify(parsed));
+      }
+    }
+    const offlineCard = localStorage.getItem(LOCAL_OFFLINE_CARD_KEY);
+    if (offlineCard) {
+      const parsedCard: OfflineEmergencyCard = JSON.parse(offlineCard);
+      if (parsedCard.token === tokenId) {
+        localStorage.removeItem(LOCAL_OFFLINE_CARD_KEY);
       }
     }
   } catch (e) {
@@ -229,10 +248,37 @@ export const validateAndFetchPublicProfile = async (token: string): Promise<{
   valid: boolean;
   revoked?: boolean;
   isCached?: boolean;
+  rateLimited?: boolean;
   lastSyncedAt?: string;
   data: EmergencyTokenData['publicApprovedData'];
 }> => {
-  // 1. Try Firestore direct lookup
+  // Rate limiting check (max 15 requests / minute)
+  if (!checkQrScanRateLimit(token)) {
+    return {
+      valid: false,
+      rateLimited: true,
+      data: null as any
+    };
+  }
+
+  // 1. Check local storage if already revoked on this device
+  try {
+    const local = localStorage.getItem(LOCAL_ACTIVE_TOKEN_KEY);
+    if (local) {
+      const parsed: EmergencyTokenData = JSON.parse(local);
+      if ((parsed.token === token || parsed.id === token) && !parsed.active) {
+        return {
+          valid: false,
+          revoked: true,
+          data: null as any
+        };
+      }
+    }
+  } catch (e) {
+    console.error('Local revocation check error:', e);
+  }
+
+  // 2. Try Firestore direct lookup
   if (db) {
     try {
       const docRef = doc(db, 'emergencyTokens', token);
@@ -263,9 +309,9 @@ export const validateAndFetchPublicProfile = async (token: string): Promise<{
     }
   }
 
-  // 2. Check local offline cache
+  // 3. Check local offline cache
   const cachedCard = getOfflineEmergencyCard();
-  if (cachedCard) {
+  if (cachedCard && cachedCard.token === token) {
     return {
       valid: true,
       revoked: false,
@@ -275,7 +321,7 @@ export const validateAndFetchPublicProfile = async (token: string): Promise<{
     };
   }
 
-  // 3. Fallback to active local token if testing on same device
+  // 4. Fallback to active local token if testing on same device
   try {
     const local = localStorage.getItem(LOCAL_ACTIVE_TOKEN_KEY);
     if (local) {
@@ -286,7 +332,7 @@ export const validateAndFetchPublicProfile = async (token: string): Promise<{
           revoked: !parsed.active,
           isCached: true,
           lastSyncedAt: parsed.createdAt,
-          data: parsed.publicApprovedData
+          data: parsed.active ? parsed.publicApprovedData : (null as any)
         };
       }
     }

@@ -1,16 +1,17 @@
 {
-  "version": "1.13.0",
-  "buildTime": 1732248000000,
+  "version": "1.14.0",
+  "buildTime": 1732252000000,
   "releaseDate": "2026-11-22",
   "changelog": [
-    "👨‍👩‍👧‍👦 Family Health Circle & Caregiver Management System (/family)",
-    "👥 Multi-Member Family Circles: Create groups, invite family members with granular relationships (Parent, Spouse, Child, Sibling, Grandparent, Guardian, Caregiver), and accept/reject invites",
-    "🛡️ Granular Caregiver Permissions: Explicit consent authorization for Medical ID, Medicine Schedule, Health Records, Appointments, SOS Alerts, and Medication Administration with 1-click access revocation",
-    "🔒 Strict Privacy & Data Isolation: Separate records for each family member — family membership does not grant automatic access to medical records without explicit patient consent",
-    "👴 Senior Citizen Mode (/senior-mode): Simplified high-contrast layout, giant touch-friendly buttons (>64px), 1-tap 108 Ambulance calling, 5-second SOS countdown, connected caregiver quick-dial, and 1-tap medication check-off",
-    "🚨 Family Emergency Live Monitor: Real-time SOS alerts, GPS coordinates with Google Maps links, impact detection alarms, family contact acknowledgements, and case resolution tracking",
-    "👶 Child Safety Emergency Profiles: Parental/legal guardian emergency management with explicit legal consent attestation, school/daycare contacts, pediatrician lines, and paramedic instructions",
-    "📋 Immutable Access Audit Trail: Chronological logging of all caregiver data accesses with timestamps, actor IDs, and accessed categories",
-    "🔔 Family Health Notifications: Coordinated emergency alerts, medication adherence logs, and hospital appointment updates across the circle"
+    "🛡️ Comprehensive Security, Privacy & Offline Reliability Engine (/security)",
+    "🔐 Web Crypto API AES-GCM 256-Bit Encryption: Zero-dependency client-side encryption with PBKDF2 key derivation and random 96-bit initialization vectors",
+    "👥 6-Role Role-Based Access Control (RBAC): Strict least-privilege matrix for Patient, Donor, Caregiver, Hospital, Administrator, and Emergency Responder with default-deny rules",
+    "📱 Public QR Hardening & Rate Limiting: 256-bit cryptographically secure tokens, instant token revocation, sliding-window scan rate limiting (max 15/min), and immutable access logging",
+    "📶 Offline Synchronization & Conflict Resolution: Encrypted pending sync queue, automatic online reconnection replay, timestamp-based conflict detection, and safe draft preservation during expired auth sessions",
+    "💾 Encrypted Backup & Disaster Recovery: Password-protected full clinical archive export (.enc.json) with SHA-256 integrity checksums, restoration report, and 16-character emergency recovery keys",
+    "🕵️ Active Session Management & Suspicious Activity: Heuristic detection of unusual devices or locations, remote session termination, and optional two-factor authentication (2FA)",
+    "🇮🇳 DPDP Act 2023 Compliance & Consent Center: Itemized affirmative consent notices across 6 Indian languages, immutable consent audit logs, statutory DPO grievance channel, and complete Right to Erasure workflow",
+    "🧪 Automated Security Test Suite: 7 interactive automated verification suites with live latency and assertion reporting covering RBAC, token revocation, cross-account isolation, and tamper resistance",
+    "🧹 PHI/PII Console Log Scrubbing: Safe logging wrapper preventing unintended exposure of patient health information, phone numbers, emails, and tokens in browser developer logs"
   ]
 }

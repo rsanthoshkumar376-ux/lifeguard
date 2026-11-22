@@ -7,6 +7,10 @@ import './i18n';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
+import { initOfflineSyncEngine } from './services/offlineSyncService';
+
+// Initialize offline network listeners & sync engine
+initOfflineSyncEngine();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

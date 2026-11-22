@@ -30,6 +30,7 @@ const ResetAppPage = React.lazy(() => import('./pages/ResetAppPage'));
 const FirstAidPage = React.lazy(() => import('./pages/FirstAidPage'));
 const FamilyCirclePage = React.lazy(() => import('./pages/family/FamilyCirclePage'));
 const SeniorModePage = React.lazy(() => import('./pages/family/SeniorModePage'));
+const SecurityCenterPage = React.lazy(() => import('./pages/security/SecurityCenterPage'));
 
 // Admin pages
 const AdminDashboard = React.lazy(() => import('./pages/admin/AdminDashboard'));
@@ -148,6 +149,11 @@ const App: React.FC = () => {
           <Route path="/caregivers" element={<FamilyCirclePage />} />
           <Route path="/senior-mode" element={<SeniorModePage />} />
           <Route path="/family/senior" element={<SeniorModePage />} />
+          
+          {/* Security, Privacy & Compliance */}
+          <Route path="/security" element={<SecurityCenterPage />} />
+          <Route path="/privacy" element={<SecurityCenterPage />} />
+          <Route path="/compliance" element={<SecurityCenterPage />} />
           
           {/* Hospital Staff */}
           <Route path="/hospital/dashboard" element={<HospitalDashboard />} />

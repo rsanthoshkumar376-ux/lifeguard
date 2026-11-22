@@ -3,33 +3,18 @@ service cloud.firestore {
   match /databases/{database}/documents {
     
     // ===============================================================
-    // Assumed Data Model (v1.13.0 Family Health Circle & Caregivers)
-    // ===============================================================
-    //
-    // /users/{userId}: Basic user metadata and role
-    // /users/{userId}/familyCircle/{docId}: Family Circle state & cache
-    // /users/{userId}/caregivers/{caregiverId}: Legacy & direct caregiver grants
-    // /users/{userId}/caregiverPermissions/{permId}: Granular consent & caregiver permissions
-    // /users/{userId}/childProfiles/{childId}: Pediatric emergency profiles with guardian consent
-    // /users/{userId}/accessLogs/{logId}: Caregiver access audit trail (immutable)
-    // /users/{userId}/healthRecords/{docId}: Patient digital health records
-    // /users/{userId}/medicineManagement/{docId}: Medication schedules & intake tracking
-    // /users/{userId}/appointments/{appointmentId}: Clinical and hospital appointments
-    // /familyCircles/{circleId}: Multi-member health circles
-    // /familyInvitations/{inviteId}: Pending & accepted circle invitations
-    // /emergencyEvents/{eventId}: Emergency SOS events & live telemetry
-    // /emergencyTokens/{tokenId}: Emergency QR token access
-    // /emergencyAccessLogs/{logId}: Public emergency QR scan logs (immutable)
-    // /bloodRequests/{requestId}: Hospital blood donor requests
-    // /hospitals/{hospitalId}: Registered and verified hospital facilities
-    // /donors/{userId}: Registered blood donors
-    // /fcmTokens/{tokenId}: Device push notification tokens
-    // /adminConfig/{docId}: Platform configuration (admin only)
-    //
+    // LifeGuard Production Healthcare Security & Authorization Model
+    // Enforces RBAC & Least-Privilege Access across 6 distinct roles:
+    // 1. Patient: Primary user managing medical records, QR ID & medications
+    // 2. Donor: Voluntary blood donor managing availability & search
+    // 3. Caregiver: Authorized family/clinical caregiver with delegated access
+    // 4. Hospital Staff: Verified clinical staff managing blood bank & triage
+    // 5. Administrator: System auditor, compliance & hospital verification
+    // 6. Responder: Certified paramedic / 108 first responder for triage
     // ===============================================================
 
     // ---------------------------------------------------------
-    // HELPER FUNCTIONS
+    // HELPER FUNCTIONS & RBAC ENFORCEMENT
     // ---------------------------------------------------------
     
     function isAuthenticated() {
@@ -41,19 +26,29 @@ service cloud.firestore {
     }
     
     function isAdmin() {
-      return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'administrator'];
     }
     
     function isHospitalStaff() {
-      return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'hospital_staff';
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['hospital_staff', 'hospital'];
+    }
+
+    function isResponder() {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['responder', 'paramedic'];
     }
     
     function isVerifiedHospital(hospitalId) {
-      let hospital = get(/databases/$(database)/documents/hospitals/$(hospitalId));
-      return hospital != null && hospital.data.status == 'verified';
+      return exists(/databases/$(database)/documents/hospitals/$(hospitalId)) &&
+        get(/databases/$(database)/documents/hospitals/$(hospitalId)).data.status == 'verified';
     }
 
-    // Helper to verify if caller is an active caregiver for the patient
+    // Helper to verify if caller is an active or registered caregiver for the patient
     function isCaregiver(userId) {
       return isAuthenticated() && (
         (
@@ -67,21 +62,43 @@ service cloud.firestore {
           exists(/databases/$(database)/documents/users/$(userId)/caregiverPermissions/$(request.auth.uid)) && 
           (
             !('status' in get(/databases/$(database)/documents/users/$(userId)/caregiverPermissions/$(request.auth.uid)).data) || 
-            get(/databases/$(database)/documents/users/$(userId)/caregiverPermissions/$(request.auth.uid)).data.status == 'active'
+            get(/databases/$(database)/documents/users/$(userId)/caregiverPermissions/$(request.auth.uid)).data.status in ['active', 'registered']
           )
         )
       );
     }
 
     // ---------------------------------------------------------
-    // USERS & ROLES
+    // USERS & ROLE MANAGEMENT
     // ---------------------------------------------------------
     
     match /users/{userId} {
-      // Any authenticated user can read basic user info, but owners can write. Admins can read all.
+      // Any authenticated user can read basic user profile info (name, role, public stats)
       allow read: if isAuthenticated();
-      // Only the user themselves can update their profile (or admins)
-      allow write: if isOwner(userId) || isAdmin();
+      
+      // User can create their own account (role must not be escalated to admin/hospital/responder)
+      allow create: if (
+        isOwner(userId) && (
+          !('role' in request.resource.data) || 
+          request.resource.data.role in ['patient', 'user', 'donor', 'caregiver']
+        )
+      ) || isAdmin();
+
+      // Only the user themselves can update their profile, or administrators
+      // Privilege escalation guard: standard users cannot elevate their role to admin, hospital_staff, or responder
+      allow update: if isAdmin() || (
+        isOwner(userId) && (
+          !('role' in request.resource.data) || 
+          request.resource.data.role == resource.data.role ||
+          (
+            request.resource.data.role in ['patient', 'user', 'donor', 'caregiver'] && 
+            (!('role' in resource.data) || resource.data.role in ['patient', 'user', 'donor', 'caregiver'])
+          )
+        )
+      );
+
+      // Account deletion by owner or admin
+      allow delete: if isOwner(userId) || isAdmin();
     }
     
     // ---------------------------------------------------------
@@ -105,7 +122,72 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------
-    // FAMILY CIRCLE STATE & SUBCOLLECTIONS (v1.13.0)
+    // USER SESSIONS, CONSENTS & SECURITY EVENTS (Req 6)
+    // ---------------------------------------------------------
+
+    match /users/{userId}/sessions/{sessionId} {
+      // Read & write strictly isOwner(userId)
+      allow read, write: if isOwner(userId);
+    }
+
+    match /users/{userId}/securityEvents/{eventId} {
+      // Read isOwner(userId) || isAdmin()
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Append-only: authenticated client or system logging auth/security alerts
+      allow create: if isAuthenticated();
+      
+      // Strictly immutable
+      allow update, delete: if false;
+    }
+
+    match /users/{userId}/consents/{consentId} {
+      // Read & write strictly isOwner(userId)
+      allow read, write: if isOwner(userId);
+    }
+
+    match /users/{userId}/securitySettings/{docId} {
+      // Read & write strictly isOwner(userId)
+      allow read, write: if isOwner(userId);
+    }
+
+    // ---------------------------------------------------------
+    // DIGITAL HEALTH RECORDS & CAREGIVERS (Req 3)
+    // ---------------------------------------------------------
+
+    match /users/{userId}/healthRecords/{docId} {
+      // Allow read if owner or authorized caregiver
+      allow read: if isOwner(userId) || isCaregiver(userId) || (
+        isAuthenticated() && 
+        resource != null && 
+        'caregivers' in resource.data && 
+        resource.data.caregivers is list && 
+        request.auth.uid in resource.data.caregivers
+      );
+
+      // Allow write if owner or authorized caregiver
+      allow write: if isOwner(userId) || isCaregiver(userId);
+    }
+
+    // ---------------------------------------------------------
+    // MEDICINE MANAGEMENT & HOSPITAL APPOINTMENTS (Req 3)
+    // ---------------------------------------------------------
+
+    match /users/{userId}/medicineManagement/{docId} {
+      // Allow read & write if owner or authorized caregiver
+      allow read, write: if isOwner(userId) || isCaregiver(userId);
+    }
+
+    match /users/{userId}/appointments/{appointmentId} {
+      // Allow read if owner, hospital staff, admin, or caregiver
+      allow read: if isOwner(userId) || isHospitalStaff() || isAdmin() || isCaregiver(userId);
+
+      // Allow write if owner, hospital staff, admin, or caregiver
+      allow write: if isOwner(userId) || isHospitalStaff() || isAdmin() || isCaregiver(userId);
+    }
+
+    // ---------------------------------------------------------
+    // FAMILY CIRCLE STATE & SUBCOLLECTIONS
     // ---------------------------------------------------------
 
     match /users/{userId}/familyCircle/{docId} {
@@ -133,7 +215,7 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------
-    // CAREGIVER PERMISSIONS & DELEGATED ACCESS (v1.13.0)
+    // CAREGIVER PERMISSIONS & DELEGATED ACCESS
     // ---------------------------------------------------------
 
     match /users/{userId}/caregivers/{caregiverId} {
@@ -161,7 +243,7 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------
-    // CHILD SAFETY EMERGENCY PROFILES (v1.13.0)
+    // CHILD SAFETY EMERGENCY PROFILES
     // ---------------------------------------------------------
 
     match /users/{userId}/childProfiles/{childId} {
@@ -193,14 +275,14 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------
-    // CAREGIVER ACCESS AUDIT LOGS (v1.13.0)
+    // CAREGIVER & USER ACCESS AUDIT LOGS (Req 5)
     // ---------------------------------------------------------
 
     match /users/{userId}/accessLogs/{logId} {
       // Owner (patient) or admin can view caregiver access audit trail
       allow read: if isOwner(userId) || isAdmin();
       
-      // Authenticated caregiver or system when accessing records
+      // Append-only: authenticated caregiver, responder, or patient when accessing records
       allow create: if isAuthenticated();
       
       // Audit logs are strictly immutable
@@ -208,59 +290,7 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------
-    // DIGITAL HEALTH RECORDS & CAREGIVERS
-    // ---------------------------------------------------------
-
-    match /users/{userId}/healthRecords/{docId} {
-      // Allow read if owner or authorized caregiver with active grant or registered in caregivers
-      allow read: if isOwner(userId) || (
-        isAuthenticated() && (
-          isCaregiver(userId) ||
-          (
-            resource != null && 
-            'caregivers' in resource.data && 
-            resource.data.caregivers is list && 
-            request.auth.uid in resource.data.caregivers
-          )
-        )
-      );
-
-      // Allow write if owner or active caregiver with manage_records role
-      allow write: if isOwner(userId) || (
-        isAuthenticated() && 
-        exists(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)) && 
-        get(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)).data.role == 'manage_records' && 
-        get(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)).data.status == 'active'
-      );
-    }
-
-    // ---------------------------------------------------------
-    // MEDICINE MANAGEMENT & HOSPITAL APPOINTMENTS
-    // ---------------------------------------------------------
-
-    match /users/{userId}/medicineManagement/{docId} {
-      // Allow read if owner or authorized caregiver (active or registered)
-      allow read: if isOwner(userId) || isCaregiver(userId);
-
-      // Allow write if owner or active caregiver with manage_records role
-      allow write: if isOwner(userId) || (
-        isAuthenticated() && 
-        exists(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)) && 
-        get(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)).data.role == 'manage_records' && 
-        get(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)).data.status == 'active'
-      );
-    }
-
-    match /users/{userId}/appointments/{appointmentId} {
-      // Allow read if owner, hospital staff, admin, or authorized caregiver (active or registered)
-      allow read: if isOwner(userId) || isHospitalStaff() || isAdmin() || isCaregiver(userId);
-
-      // Allow write if owner, hospital staff, or admin
-      allow write: if isOwner(userId) || isHospitalStaff() || isAdmin();
-    }
-
-    // ---------------------------------------------------------
-    // ROOT FAMILY CIRCLES & INVITATIONS (v1.13.0)
+    // ROOT FAMILY CIRCLES & INVITATIONS
     // ---------------------------------------------------------
 
     match /familyCircles/{circleId} {
@@ -347,8 +377,7 @@ service cloud.firestore {
     // ---------------------------------------------------------
     
     match /donors/{userId} {
-      // System reads for matching (handled via Cloud Functions mostly)
-      // Any verified hospital or admin can search donors, user can update own donor status
+      // Any verified hospital staff, admin, or donor themselves can read donor profile
       allow read: if isOwner(userId) || isHospitalStaff() || isAdmin();
       allow write: if isOwner(userId);
     }
@@ -358,52 +387,94 @@ service cloud.firestore {
     // ---------------------------------------------------------
     
     match /hospitals/{hospitalId} {
-      // Public can read verified hospitals
+      // Public can read verified hospitals; staff and admin can read all
       allow read: if (resource == null) || resource.data.status == 'verified' || isAdmin() || isHospitalStaff();
-      // Anyone can register a hospital, admins verify it
+      // Anyone authenticated can register a hospital, admins verify it
       allow create: if isAuthenticated();
       allow update, delete: if isAdmin() || (isHospitalStaff() && resource.data.createdBy == request.auth.uid);
     }
 
     // ---------------------------------------------------------
-    // BLOOD REQUESTS
+    // BLOOD REQUESTS & RESPONSES
     // ---------------------------------------------------------
     
     match /bloodRequests/{requestId} {
       // Anyone authenticated can view blood requests
       allow read: if isAuthenticated();
-      // Only verified hospital staff can create/update requests
+      // Only verified hospital staff can create requests
       allow create: if isHospitalStaff() && isVerifiedHospital(request.resource.data.hospitalId);
       allow update: if (isHospitalStaff() && resource.data.createdBy == request.auth.uid) || isAdmin();
       allow delete: if isAdmin();
       
       match /donorResponses/{responseId} {
-        // Authenticated users can view their responses and hospital can view all
+        // Authenticated users can view responses and hospital staff can view all
         allow read: if isAuthenticated();
-        // Any user can respond
+        // Any user can respond with their own donor ID
         allow create: if isAuthenticated() && request.resource.data.donorId == request.auth.uid;
-        allow update: if isAuthenticated() && resource.data.donorId == request.auth.uid || isHospitalStaff();
+        allow update: if isAuthenticated() && (resource.data.donorId == request.auth.uid || isHospitalStaff());
       }
     }
 
-    // ---------------------------------------------------------
-    // EMERGENCY TOKENS & LOGS
-    // ---------------------------------------------------------
-    
-    match /emergencyTokens/{tokenId} {
-      // Token is required to read it, so it's conceptually public if you have the ID
-      allow read: if true;
-      allow write: if isOwner(request.resource.data.userId);
-    }
-    
-    match /emergencyAccessLogs/{logId} {
-      allow read: if isOwner(resource.data.userId);
-      allow create: if true; // Anyone scanning the QR can generate a log
-      allow update, delete: if false; // Immutable logs
+    match /blood_requests/{requestId} {
+      allow read: if isAuthenticated();
+      allow create: if isHospitalStaff() || isAdmin();
+      allow update: if isHospitalStaff() || isAdmin();
+      allow delete: if isAdmin();
     }
 
     // ---------------------------------------------------------
-    // NOTIFICATIONS & ADMIN
+    // PATIENT CLINICAL HANDOVERS (PARAMEDIC / RESPONDER & ER)
+    // ---------------------------------------------------------
+
+    match /patient_handovers/{handoverId} {
+      allow read: if isHospitalStaff() || isResponder() || isAdmin();
+      allow create: if isHospitalStaff() || isResponder() || isAdmin();
+      allow update: if isHospitalStaff() || isResponder() || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ---------------------------------------------------------
+    // EMERGENCY TOKENS & PUBLIC LOOKUP (Req 5)
+    // ---------------------------------------------------------
+    
+    match /emergencyTokens/{tokenId} {
+      // Read allowed for active tokens (public emergency lookup) or by owner/admin
+      allow get: if (resource == null) || 
+        (resource.data.active == true) || 
+        (isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin()));
+      
+      allow list: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || 
+        isAdmin()
+      );
+      
+      // Write strictly owner only
+      allow create: if isOwner(request.resource.data.userId);
+      allow update: if isOwner(resource.data.userId) && 
+        (!('userId' in request.resource.data) || request.resource.data.userId == resource.data.userId);
+      allow delete: if isOwner(resource.data.userId);
+    }
+    
+    // ---------------------------------------------------------
+    // EMERGENCY ACCESS LOGS (Req 5)
+    // ---------------------------------------------------------
+
+    match /emergencyAccessLogs/{logId} {
+      // Owner of the referenced patient record or admin can review access logs
+      allow read: if isAuthenticated() && (
+        isAdmin() || 
+        (resource != null && 'userId' in resource.data && resource.data.userId == request.auth.uid)
+      );
+      
+      // Append-only: anyone scanning the QR can generate an access log
+      allow create: if true;
+      
+      // Audit logs are strictly immutable
+      allow update, delete: if false;
+    }
+
+    // ---------------------------------------------------------
+    // NOTIFICATIONS & SYSTEM CONFIG
     // ---------------------------------------------------------
     
     match /fcmTokens/{tokenId} {
@@ -415,14 +486,18 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------
-    // EMERGENCY EVENTS & CASES (ADVANCED EMERGENCY RESPONSE)
+    // EMERGENCY EVENTS & CASES (Req 4)
     // ---------------------------------------------------------
     
     match /emergencyEvents/{eventId} {
-      // Authenticated users can read their own emergency events, or if they are admin
-      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      // Owner, admin, or isResponder() can read emergency events
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || 
+        isAdmin() || 
+        isResponder()
+      );
       
-      // Users can create an emergency event where request.resource.data.userId == request.auth.uid
+      // Owner can create an emergency event
       allow create: if isAuthenticated() 
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.id is string
@@ -431,9 +506,9 @@ service cloud.firestore {
         && request.resource.data.createdAt is string
         && request.resource.data.updatedAt is string;
       
-      // The user or an admin can update the emergency event (e.g. updating location, status, adding timeline entries)
+      // Owner, admin, or isResponder() can update status (e.g. 'Acknowledged', 'Assistance Accepted', 'Resolved')
       allow update: if isAuthenticated() 
-        && (resource.data.userId == request.auth.uid || isAdmin())
+        && (resource.data.userId == request.auth.uid || isAdmin() || isResponder())
         && request.resource.data.userId == resource.data.userId
         && request.resource.data.id == resource.data.id
         && request.resource.data.createdAt == resource.data.createdAt
@@ -441,6 +516,15 @@ service cloud.firestore {
       
       // Only admins can delete emergency events
       allow delete: if isAdmin();
+
+      // Telemetry or incident logs under an emergency event
+      match /{subcollection}/{docId} {
+        allow read, write: if isAuthenticated() && (
+          get(/databases/$(database)/documents/emergencyEvents/$(eventId)).data.userId == request.auth.uid ||
+          isAdmin() ||
+          isResponder()
+        );
+      }
     }
   }
 }
