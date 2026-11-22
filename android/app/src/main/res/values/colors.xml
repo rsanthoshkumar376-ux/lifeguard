@@ -1,0 +1,23 @@
+<resources>
+    <!-- LifeGuard Medical Blue and Emergency Red palette -->
+    <color name="medical_blue_primary">#0284C7</color>
+    <color name="medical_blue_dark">#0369A1</color>
+    <color name="medical_blue_light">#E0F2FE</color>
+    
+    <color name="emergency_red">#DC2626</color>
+    <color name="emergency_red_dark">#B91C1C</color>
+    <color name="emergency_red_light">#FEE2E2</color>
+    
+    <color name="success_emerald">#059669</color>
+    <color name="warning_amber">#D97706</color>
+    
+    <color name="background_light">#F8FAFC</color>
+    <color name="surface_light">#FFFFFF</color>
+    <color name="text_primary_light">#0F172A</color>
+    <color name="text_secondary_light">#64748B</color>
+
+    <color name="background_dark">#0B0F19</color>
+    <color name="surface_dark">#151E2E</color>
+    <color name="text_primary_dark">#F8FAFC</color>
+    <color name="text_secondary_dark">#94A3B8</color>
+</resources>

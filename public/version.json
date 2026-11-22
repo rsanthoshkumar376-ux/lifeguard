@@ -1,15 +1,16 @@
 {
-  "version": "1.15.0",
-  "buildTime": 1732260000000,
+  "version": "1.16.0",
+  "buildTime": 1732270000000,
   "releaseDate": "2026-11-22",
   "changelog": [
-    "🏥 Modern Healthcare Dashboard Redesign: Clean white & medical-blue aesthetic with Emergency Red exclusively reserved for life-critical SOS triggers",
-    "🔟 10 Dedicated Healthcare Cards: Emergency SOS, Medical ID QR, Blood Donor Network, Digital Health Records, Medicine & Visits, AI Assistant, Family Health Circle, Nearby Hospitals & ER, First-Aid & CPR, and Recent Activity Audit",
-    "♿ Advanced Accessibility Engine: WCAG AAA High Contrast mode (7:1+ contrast ratio, black/white/yellow), Large Text mode (115% scale with heightened tap targets), universal keyboard focus outlines (focus-visible:ring-4)",
-    "🗣️ Web Speech Voice Navigation: Hands-free voice recognition with auditory feedback (Emergency, Blood, Medical ID, Health, Medicines, Hospitals, First Aid, Home)",
-    "🏷️ Color-Independent Status Indicators: Every state verified with semantic icons and bracketed textual tags ([TAKEN], [PENDING], [VERIFIED], [URGENT])",
-    "🧭 Full 8-Item Navigation: Home, Emergency, Medical ID, Blood Network, Health, AI Assistant, Family, Profile with responsive Desktop Navbar & Mobile BottomNav",
-    "🚨 Universal Persistent Quick Emergency Button: Speed dial for 1-tap SOS dispatch, 108 Ambulance, 112 Emergency, Medical ID QR, and CPR Metronome accessible across every screen",
-    "🌐 6-Language Support: English, தமிழ் (Tamil), हिंदी (Hindi), తెలుగు (Telugu), ಕನ್ನಡ (Kannada), മലയാളം (Malayalam)"
+    "🤖 Native Android Companion (Kotlin & Jetpack Compose): Purpose-built native Android client in `android/` providing deep OS integration alongside the supported PWA client",
+    "🔒 Native Lock-Screen Medical ID: Persistent `VISIBILITY_PUBLIC` notification displaying patient blood group, critical allergies, and 1-tap actions: Show Medical QR (over Keyguard), Call 108 Ambulance, and Call Contact",
+    "📊 Permitted Background Sensor Monitoring: Compliant Foreground Service monitoring 3-axis accelerometer/gyroscope at 20 Hz (<0.8% battery/day) with multi-stage physics detection for severe vehicular collisions and hard falls",
+    "🛡️ Transparent Safety Guardrails: Strictly enforces user safety by never silently sending SMS or auto-dialing 108; presents interactive 30s confirmation dialog before distress actions",
+    "📲 Android SMS Handoff: Pre-populates distress coordinates, GPS maps link, patient blood group, allergies, and Medical ID URL into the user's default SMS app via `ACTION_SENDTO` for manual human review and send",
+    "⏰ Reliable Doze-Proof Medication Alarms: Uses `AlarmManager.setExactAndAllowWhileIdle()` to guarantee timely local medicine reminders during deep sleep, restored on device reboot via `BOOT_COMPLETED`",
+    "🔘 Interactive Notification Actions: 1-tap 'Mark Taken' and 'Snooze 15m' directly from the notification shade, backed by AES-256 GCM `EncryptedSharedPreferences`",
+    "📡 Secure Backend Synchronization: Express/Firebase `/api/companion/*` endpoints for state sync, dose updates, telemetry delivery, and configuration",
+    "🌐 Seamless PWA Coexistence: Preserves the PWA as an independent supported client with cross-client deep links (`lifeguard://companion` and `https://lifeguard-azure.vercel.app/companion`)"
   ]
 }

@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">LifeGuard</string>
+    <string name="app_subtitle">Native Android Emergency Companion</string>
+    <string name="lock_screen_medical_id_title">Emergency Medical ID</string>
+    
+    <!-- Notification Channels -->
+    <string name="channel_emergency_sos_name">Emergency SOS &amp; High-Priority Alerts</string>
+    <string name="channel_emergency_sos_desc">Audible siren alarms and critical safety alerts for trauma situations.</string>
+    
+    <string name="channel_medical_id_name">Lock-Screen Medical ID</string>
+    <string name="channel_medical_id_desc">Persistent triage information visible to paramedics and first responders on the locked screen.</string>
+    
+    <string name="channel_medication_reminders_name">Medication Reminders</string>
+    <string name="channel_medication_reminders_desc">Punctual reminders for scheduled prescription doses with 1-tap taken confirmation.</string>
+    
+    <string name="channel_blood_network_name">Blood Network Matches</string>
+    <string name="channel_blood_network_desc">Alerts for urgent blood requisitions matching your blood group in your area.</string>
+    
+    <string name="channel_sensor_service_name">Background Safety Sensor Service</string>
+    <string name="channel_sensor_service_desc">Continuous vehicular shockwave and hard-fall monitoring service.</string>
+
+    <!-- Actions -->
+    <string name="action_show_qr">Show Medical QR</string>
+    <string name="action_call_108">Call Ambulance (108)</string>
+    <string name="action_call_112">Call Emergency (112)</string>
+    <string name="action_call_contact">Call Emergency Contact</string>
+    <string name="action_mark_taken">Mark Taken</string>
+    <string name="action_snooze_15m">Snooze 15m</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_send_sms">Open SMS Handoff</string>
+</resources>

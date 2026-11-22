@@ -17,6 +17,7 @@ import QuickMedicalIdModal from '../components/medical/QuickMedicalIdModal';
 import LockScreenGuideModal from '../components/medical/LockScreenGuideModal';
 import LockScreenGeneratorModal from '../components/medical/LockScreenGeneratorModal';
 import CprFirstAidModal from '../components/medical/CprFirstAidModal';
+import AndroidCompanionModal from '../components/common/AndroidCompanionModal';
 
 import { getMedicalProfile, MedicalProfile } from '../services/medicalProfile';
 import { getHealthProfile, DigitalHealthProfile } from '../services/healthRecordsService';
@@ -48,6 +49,7 @@ const Home: React.FC = () => {
   const [showLockScreenGuide, setShowLockScreenGuide] = useState(false);
   const [showWallpaperGenerator, setShowWallpaperGenerator] = useState(false);
   const [showCprFirstAid, setShowCprFirstAid] = useState(false);
+  const [showCompanionModal, setShowCompanionModal] = useState(false);
 
   // Data Loading & Card States
   const [isLoading, setIsLoading] = useState(true);
@@ -334,6 +336,14 @@ const Home: React.FC = () => {
               <Heart size={14} className="text-amber-600" />
               <span>Senior Mode</span>
             </Link>
+            <button
+              onClick={() => setShowCompanionModal(true)}
+              className="px-3.5 py-2 rounded-xl text-xs font-bold bg-sky-50 hover:bg-sky-100 dark:bg-sky-950/40 text-sky-800 dark:text-sky-300 border border-sky-200 dark:border-sky-800 flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer"
+              title="Native Android Companion (Lock-screen ID, Background sensor, SMS handoff)"
+            >
+              <Smartphone size={14} className="text-sky-600" />
+              <span>Android Companion</span>
+            </button>
           </div>
         </div>
 
@@ -1172,6 +1182,12 @@ const Home: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Native Android Companion Bridge Modal */}
+      <AndroidCompanionModal
+        isOpen={showCompanionModal}
+        onClose={() => setShowCompanionModal(false)}
+      />
     </div>
   );
 };
