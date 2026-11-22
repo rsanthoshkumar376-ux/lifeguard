@@ -2,6 +2,32 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
+    // ===============================================================
+    // Assumed Data Model (v1.13.0 Family Health Circle & Caregivers)
+    // ===============================================================
+    //
+    // /users/{userId}: Basic user metadata and role
+    // /users/{userId}/familyCircle/{docId}: Family Circle state & cache
+    // /users/{userId}/caregivers/{caregiverId}: Legacy & direct caregiver grants
+    // /users/{userId}/caregiverPermissions/{permId}: Granular consent & caregiver permissions
+    // /users/{userId}/childProfiles/{childId}: Pediatric emergency profiles with guardian consent
+    // /users/{userId}/accessLogs/{logId}: Caregiver access audit trail (immutable)
+    // /users/{userId}/healthRecords/{docId}: Patient digital health records
+    // /users/{userId}/medicineManagement/{docId}: Medication schedules & intake tracking
+    // /users/{userId}/appointments/{appointmentId}: Clinical and hospital appointments
+    // /familyCircles/{circleId}: Multi-member health circles
+    // /familyInvitations/{inviteId}: Pending & accepted circle invitations
+    // /emergencyEvents/{eventId}: Emergency SOS events & live telemetry
+    // /emergencyTokens/{tokenId}: Emergency QR token access
+    // /emergencyAccessLogs/{logId}: Public emergency QR scan logs (immutable)
+    // /bloodRequests/{requestId}: Hospital blood donor requests
+    // /hospitals/{hospitalId}: Registered and verified hospital facilities
+    // /donors/{userId}: Registered blood donors
+    // /fcmTokens/{tokenId}: Device push notification tokens
+    // /adminConfig/{docId}: Platform configuration (admin only)
+    //
+    // ===============================================================
+
     // ---------------------------------------------------------
     // HELPER FUNCTIONS
     // ---------------------------------------------------------
@@ -25,6 +51,26 @@ service cloud.firestore {
     function isVerifiedHospital(hospitalId) {
       let hospital = get(/databases/$(database)/documents/hospitals/$(hospitalId));
       return hospital != null && hospital.data.status == 'verified';
+    }
+
+    // Helper to verify if caller is an active caregiver for the patient
+    function isCaregiver(userId) {
+      return isAuthenticated() && (
+        (
+          exists(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)) && 
+          (
+            !('status' in get(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)).data) || 
+            get(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)).data.status in ['active', 'registered']
+          )
+        ) ||
+        (
+          exists(/databases/$(database)/documents/users/$(userId)/caregiverPermissions/$(request.auth.uid)) && 
+          (
+            !('status' in get(/databases/$(database)/documents/users/$(userId)/caregiverPermissions/$(request.auth.uid)).data) || 
+            get(/databases/$(database)/documents/users/$(userId)/caregiverPermissions/$(request.auth.uid)).data.status == 'active'
+          )
+        )
+      );
     }
 
     // ---------------------------------------------------------
@@ -59,6 +105,109 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------
+    // FAMILY CIRCLE STATE & SUBCOLLECTIONS (v1.13.0)
+    // ---------------------------------------------------------
+
+    match /users/{userId}/familyCircle/{docId} {
+      // Allow read if owner, or authenticated family member / caregiver with active permissions
+      allow read: if isOwner(userId) || (
+        isAuthenticated() && (
+          isCaregiver(userId) ||
+          (resource != null && (
+            ('members' in resource.data && resource.data.members is list && request.auth.uid in resource.data.members) ||
+            ('memberUserIds' in resource.data && resource.data.memberUserIds is list && request.auth.uid in resource.data.memberUserIds) ||
+            ('caregivers' in resource.data && resource.data.caregivers is list && request.auth.uid in resource.data.caregivers) ||
+            ('authorizedUsers' in resource.data && resource.data.authorizedUsers is list && request.auth.uid in resource.data.authorizedUsers)
+          ))
+        )
+      );
+
+      // Only patient/owner can manage their family circle state
+      allow write: if isOwner(userId);
+
+      // Support any nested subcollections under familyCircle
+      match /{subcollection}/{subDocId} {
+        allow read: if isOwner(userId) || isCaregiver(userId);
+        allow write: if isOwner(userId);
+      }
+    }
+
+    // ---------------------------------------------------------
+    // CAREGIVER PERMISSIONS & DELEGATED ACCESS (v1.13.0)
+    // ---------------------------------------------------------
+
+    match /users/{userId}/caregivers/{caregiverId} {
+      // Allow read if owner or the caregiver themselves
+      allow read: if isOwner(userId) || (
+        isAuthenticated() && (
+          request.auth.uid == caregiverId ||
+          (resource != null && 'caregiverUserId' in resource.data && resource.data.caregiverUserId == request.auth.uid)
+        )
+      );
+      // Only the patient/owner can manage their caregivers
+      allow write: if isOwner(userId);
+    }
+
+    match /users/{userId}/caregiverPermissions/{permId} {
+      // Allow read if owner or the caregiver themselves
+      allow read: if isOwner(userId) || (
+        isAuthenticated() && (
+          request.auth.uid == permId || 
+          (resource != null && 'caregiverUserId' in resource.data && resource.data.caregiverUserId == request.auth.uid)
+        )
+      );
+      // Only patient/owner can grant or revoke permissions
+      allow write: if isOwner(userId);
+    }
+
+    // ---------------------------------------------------------
+    // CHILD SAFETY EMERGENCY PROFILES (v1.13.0)
+    // ---------------------------------------------------------
+
+    match /users/{userId}/childProfiles/{childId} {
+      // Legal guardian (owner) or authorized family circle members can read
+      allow read: if isOwner(userId) || (
+        isAuthenticated() && (
+          isCaregiver(userId) ||
+          (resource != null && (
+            ('authorizedMembers' in resource.data && resource.data.authorizedMembers is list && request.auth.uid in resource.data.authorizedMembers) ||
+            ('members' in resource.data && resource.data.members is list && request.auth.uid in resource.data.members) ||
+            ('caregivers' in resource.data && resource.data.caregivers is list && request.auth.uid in resource.data.caregivers)
+          ))
+        )
+      );
+
+      // Legal guardian can create with explicit consent verification
+      allow create: if isOwner(userId)
+        && request.resource.data.guardianConsentConfirmed == true
+        && (!('guardianUserId' in request.resource.data) || request.resource.data.guardianUserId == userId);
+
+      // Legal guardian can update with explicit consent verification and immutable childId
+      allow update: if isOwner(userId)
+        && request.resource.data.guardianConsentConfirmed == true
+        && (!('guardianUserId' in request.resource.data) || request.resource.data.guardianUserId == userId)
+        && (!('childId' in resource.data) || !('childId' in request.resource.data) || request.resource.data.childId == resource.data.childId);
+
+      // Legal guardian can delete
+      allow delete: if isOwner(userId);
+    }
+
+    // ---------------------------------------------------------
+    // CAREGIVER ACCESS AUDIT LOGS (v1.13.0)
+    // ---------------------------------------------------------
+
+    match /users/{userId}/accessLogs/{logId} {
+      // Owner (patient) or admin can view caregiver access audit trail
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Authenticated caregiver or system when accessing records
+      allow create: if isAuthenticated();
+      
+      // Audit logs are strictly immutable
+      allow update, delete: if false;
+    }
+
+    // ---------------------------------------------------------
     // DIGITAL HEALTH RECORDS & CAREGIVERS
     // ---------------------------------------------------------
 
@@ -66,13 +215,7 @@ service cloud.firestore {
       // Allow read if owner or authorized caregiver with active grant or registered in caregivers
       allow read: if isOwner(userId) || (
         isAuthenticated() && (
-          (
-            exists(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)) && 
-            (
-              !('status' in get(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)).data) || 
-              get(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)).data.status in ['active', 'registered']
-            )
-          ) ||
+          isCaregiver(userId) ||
           (
             resource != null && 
             'caregivers' in resource.data && 
@@ -91,27 +234,13 @@ service cloud.firestore {
       );
     }
 
-    match /users/{userId}/caregivers/{caregiverId} {
-      // Allow read if owner or the caregiver themselves
-      allow read: if isOwner(userId) || (isAuthenticated() && request.auth.uid == caregiverId);
-      // Only the patient/owner can manage their caregivers
-      allow write: if isOwner(userId);
-    }
-
     // ---------------------------------------------------------
     // MEDICINE MANAGEMENT & HOSPITAL APPOINTMENTS
     // ---------------------------------------------------------
 
     match /users/{userId}/medicineManagement/{docId} {
       // Allow read if owner or authorized caregiver (active or registered)
-      allow read: if isOwner(userId) || (
-        isAuthenticated() && 
-        exists(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)) && 
-        (
-          !('status' in get(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)).data) || 
-          get(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)).data.status in ['active', 'registered']
-        )
-      );
+      allow read: if isOwner(userId) || isCaregiver(userId);
 
       // Allow write if owner or active caregiver with manage_records role
       allow write: if isOwner(userId) || (
@@ -124,17 +253,93 @@ service cloud.firestore {
 
     match /users/{userId}/appointments/{appointmentId} {
       // Allow read if owner, hospital staff, admin, or authorized caregiver (active or registered)
-      allow read: if isOwner(userId) || isHospitalStaff() || isAdmin() || (
-        isAuthenticated() && 
-        exists(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)) && 
-        (
-          !('status' in get(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)).data) || 
-          get(/databases/$(database)/documents/users/$(userId)/caregivers/$(request.auth.uid)).data.status in ['active', 'registered']
-        )
-      );
+      allow read: if isOwner(userId) || isHospitalStaff() || isAdmin() || isCaregiver(userId);
 
       // Allow write if owner, hospital staff, or admin
       allow write: if isOwner(userId) || isHospitalStaff() || isAdmin();
+    }
+
+    // ---------------------------------------------------------
+    // ROOT FAMILY CIRCLES & INVITATIONS (v1.13.0)
+    // ---------------------------------------------------------
+
+    match /familyCircles/{circleId} {
+      // Circle read if user is member or admin
+      allow read: if isAuthenticated() && (
+        isAdmin() ||
+        (resource != null && (
+          resource.data.adminUserId == request.auth.uid ||
+          ('memberUserIds' in resource.data && resource.data.memberUserIds is list && request.auth.uid in resource.data.memberUserIds) ||
+          ('members' in resource.data && resource.data.members is list && request.auth.uid in resource.data.members)
+        ))
+      );
+
+      // Circle create if authenticated
+      allow create: if isAuthenticated() 
+        && (!('adminUserId' in request.resource.data) || request.resource.data.adminUserId == request.auth.uid);
+
+      // Circle update if admin of the circle or system admin
+      allow update: if isAuthenticated() && (
+        isAdmin() ||
+        resource.data.adminUserId == request.auth.uid
+      );
+
+      // Circle delete if admin of the circle or system admin
+      allow delete: if isAuthenticated() && (
+        isAdmin() ||
+        resource.data.adminUserId == request.auth.uid
+      );
+
+      // Allow access to circle subcollections (e.g. alerts, logs, updates)
+      match /{subcollection}/{docId} {
+        allow read: if isAuthenticated();
+        allow write: if isAuthenticated() && (
+          get(/databases/$(database)/documents/familyCircles/$(circleId)).data.adminUserId == request.auth.uid ||
+          isAdmin()
+        );
+      }
+    }
+    
+    match /familyInvitations/{inviteId} {
+      // Read if sender or recipient phone/email/uid matches auth, or admin
+      allow read: if isAuthenticated() && (
+        isAdmin() ||
+        (resource != null && (
+          resource.data.senderId == request.auth.uid ||
+          ('recipientUserId' in resource.data && resource.data.recipientUserId == request.auth.uid) ||
+          ('recipientEmail' in resource.data && request.auth.token.email != null && resource.data.recipientEmail == request.auth.token.email) ||
+          ('recipientPhone' in resource.data && request.auth.token.phone_number != null && resource.data.recipientPhone == request.auth.token.phone_number)
+        ))
+      );
+
+      // Create if sender or admin
+      allow create: if isAuthenticated() && (
+        isAdmin() ||
+        request.resource.data.senderId == request.auth.uid
+      );
+
+      // Update if recipient accepting/rejecting, or sender/admin
+      allow update: if isAuthenticated() && (
+        isAdmin() ||
+        resource.data.senderId == request.auth.uid ||
+        (
+          (
+            ('recipientUserId' in resource.data && resource.data.recipientUserId == request.auth.uid) ||
+            ('recipientEmail' in resource.data && request.auth.token.email != null && resource.data.recipientEmail == request.auth.token.email) ||
+            ('recipientPhone' in resource.data && request.auth.token.phone_number != null && resource.data.recipientPhone == request.auth.token.phone_number) ||
+            (request.resource.data.recipientUserId == request.auth.uid)
+          ) &&
+          request.resource.data.status in ['accepted', 'rejected', 'pending'] &&
+          request.resource.data.senderId == resource.data.senderId &&
+          request.resource.data.circleId == resource.data.circleId
+        )
+      );
+
+      // Delete if sender or admin
+      allow delete: if isAuthenticated() && (
+        isAdmin() ||
+        resource.data.senderId == request.auth.uid
+      );
     }
 
     // ---------------------------------------------------------

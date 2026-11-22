@@ -20,12 +20,14 @@ const navItems: NavItem[] = [
 const BottomNav: React.FC = () => {
   const location = useLocation();
 
-  // Hide BottomNav on chat and full-screen assistant pages so the keyboard & input bar have 100% full screen access
+  // Hide BottomNav on chat, full-screen assistant, and senior mode pages
   if (
     location.pathname.startsWith('/ai-chat') ||
     location.pathname.startsWith('/assistant') ||
     location.pathname.startsWith('/ai') ||
-    location.pathname.startsWith('/reset')
+    location.pathname.startsWith('/reset') ||
+    location.pathname.startsWith('/senior-mode') ||
+    location.pathname.startsWith('/family/senior')
   ) {
     return null;
   }

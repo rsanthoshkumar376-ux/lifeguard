@@ -28,6 +28,8 @@ const SettingsPage = React.lazy(() => import('./pages/profile/SettingsPage'));
 const AiChatPage = React.lazy(() => import('./pages/ai/AiChatPage'));
 const ResetAppPage = React.lazy(() => import('./pages/ResetAppPage'));
 const FirstAidPage = React.lazy(() => import('./pages/FirstAidPage'));
+const FamilyCirclePage = React.lazy(() => import('./pages/family/FamilyCirclePage'));
+const SeniorModePage = React.lazy(() => import('./pages/family/SeniorModePage'));
 
 // Admin pages
 const AdminDashboard = React.lazy(() => import('./pages/admin/AdminDashboard'));
@@ -139,6 +141,13 @@ const App: React.FC = () => {
           <Route path="/ai" element={<AiChatPage />} />
           <Route path="/reset" element={<ResetAppPage />} />
           <Route path="/reset-app" element={<ResetAppPage />} />
+          
+          {/* Family Health Circle & Caregivers */}
+          <Route path="/family" element={<FamilyCirclePage />} />
+          <Route path="/family-circle" element={<FamilyCirclePage />} />
+          <Route path="/caregivers" element={<FamilyCirclePage />} />
+          <Route path="/senior-mode" element={<SeniorModePage />} />
+          <Route path="/family/senior" element={<SeniorModePage />} />
           
           {/* Hospital Staff */}
           <Route path="/hospital/dashboard" element={<HospitalDashboard />} />

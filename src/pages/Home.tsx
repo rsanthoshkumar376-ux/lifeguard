@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Bell, HeartPulse, Droplet, Users, Hospital, Droplets, Activity, Settings, PhoneCall, LogIn, Download, Smartphone, X, Globe, Sparkles, Moon, Sun, Bot, Camera, RefreshCw, QrCode, Pin, FileText, Pill } from 'lucide-react';
+import { Bell, HeartPulse, Droplet, Users, Hospital, Droplets, Activity, Settings, PhoneCall, LogIn, Download, Smartphone, X, Globe, Sparkles, Moon, Sun, Bot, Camera, RefreshCw, QrCode, Pin, FileText, Pill, Heart } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
@@ -392,13 +392,13 @@ const Home: React.FC = () => {
             <span>🫀 CPR Metronome</span>
           </button>
 
-          <button
-            onClick={() => setShowLockScreenGuide(true)}
-            className="py-2.5 px-3 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl text-xs font-bold text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 flex items-center justify-center gap-1.5 shadow-xs active:scale-95 transition-all cursor-pointer text-center"
+          <Link
+            to="/senior-mode"
+            className="py-2.5 px-3 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white rounded-xl text-xs font-black shadow flex items-center justify-center gap-1.5 active:scale-95 transition-all text-center"
           >
-            <Smartphone size={14} className="text-red-600 dark:text-red-400" />
-            <span>📱 Lock Guide</span>
-          </button>
+            <Heart size={14} className="text-amber-200" />
+            <span>👴 Senior Mode</span>
+          </Link>
         </div>
 
         {/* Main Action Grid */}
@@ -436,6 +436,11 @@ const Home: React.FC = () => {
           <Link to="/medicines" className="bg-teal-700 hover:bg-teal-800 text-white h-24 rounded-2xl flex flex-col items-center justify-center p-2 shadow active:scale-95 transition-transform text-center">
              <Pill size={28} className="mb-1 shrink-0" />
              <span className="font-bold text-xs sm:text-sm leading-tight px-1">Medicine & Visits</span>
+          </Link>
+
+          <Link to="/family" className="bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-800 hover:to-indigo-800 text-white h-24 rounded-2xl flex flex-col items-center justify-center p-2 shadow active:scale-95 transition-transform text-center">
+             <Users size={28} className="mb-1 shrink-0" />
+             <span className="font-bold text-xs sm:text-sm leading-tight px-1">Family & Caregivers</span>
           </Link>
 
           <Link to="/nearby-hospitals" className="bg-emerald-600 hover:bg-emerald-700 text-white h-24 rounded-2xl flex flex-col items-center justify-center p-2 shadow active:scale-95 transition-transform text-center">

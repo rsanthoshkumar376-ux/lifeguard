@@ -1,17 +1,16 @@
 {
-  "version": "1.12.0",
-  "buildTime": 1732244000000,
-  "releaseDate": "2026-11-21",
+  "version": "1.13.0",
+  "buildTime": 1732248000000,
+  "releaseDate": "2026-11-22",
   "changelog": [
-    "🤖 Gemini 3.8 Flash Multimodal AI Healthcare Assistant upgrade (/ai-chat)",
-    "📄 AI Medical Report Scanner: Extracts tests, measured values, units, printed reference ranges, and flags abnormal readings",
-    "⚠️ Optical & Handwriting Uncertainty Detection: Displays clear warning indicators for unclear handwriting or low-quality scans",
-    "💡 Plain-Language Medical Explanations: Translates complex clinical terminology, explains what tests measure, and clarifies reference range differences",
-    "🩺 Tailored Questions for Doctor: Generates practical, actionable questions for physician consultations with 1-click clipboard copy",
-    "💊 Multimodal Prescription Scanner: Extracts medicine names, dosages, frequencies, and durations while strictly refusing to invent unreadable drugs",
-    "➕ 1-Click Medicine Schedule Import: Direct sync from scanned prescriptions to the LifeGuard Medicine Tracker",
-    "📝 Doctor Consultation Summary Generator: Synthesizes diagnostic findings into an executive consultation brief with print/PDF support",
-    "🌐 6-Language Support: English, Tamil (தமிழ்), Hindi (हिंदी), Telugu (తెలుగు), Kannada (ಕನ್ನಡ), and Malayalam (മലയാളം) with native voice synthesis and speech recognition",
-    "🔒 Secure Backend Integration & Privacy: Server-side Gemini API endpoints, sliding-window rate limiting, document validation, and encrypted conversation history with markdown/json export"
+    "👨‍👩‍👧‍👦 Family Health Circle & Caregiver Management System (/family)",
+    "👥 Multi-Member Family Circles: Create groups, invite family members with granular relationships (Parent, Spouse, Child, Sibling, Grandparent, Guardian, Caregiver), and accept/reject invites",
+    "🛡️ Granular Caregiver Permissions: Explicit consent authorization for Medical ID, Medicine Schedule, Health Records, Appointments, SOS Alerts, and Medication Administration with 1-click access revocation",
+    "🔒 Strict Privacy & Data Isolation: Separate records for each family member — family membership does not grant automatic access to medical records without explicit patient consent",
+    "👴 Senior Citizen Mode (/senior-mode): Simplified high-contrast layout, giant touch-friendly buttons (>64px), 1-tap 108 Ambulance calling, 5-second SOS countdown, connected caregiver quick-dial, and 1-tap medication check-off",
+    "🚨 Family Emergency Live Monitor: Real-time SOS alerts, GPS coordinates with Google Maps links, impact detection alarms, family contact acknowledgements, and case resolution tracking",
+    "👶 Child Safety Emergency Profiles: Parental/legal guardian emergency management with explicit legal consent attestation, school/daycare contacts, pediatrician lines, and paramedic instructions",
+    "📋 Immutable Access Audit Trail: Chronological logging of all caregiver data accesses with timestamps, actor IDs, and accessed categories",
+    "🔔 Family Health Notifications: Coordinated emergency alerts, medication adherence logs, and hospital appointment updates across the circle"
   ]
 }
