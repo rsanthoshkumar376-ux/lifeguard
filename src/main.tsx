@@ -6,6 +6,7 @@ import './index.css';
 import './i18n';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { AccessibilityProvider } from './contexts/AccessibilityContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import { initOfflineSyncEngine } from './services/offlineSyncService';
 
@@ -18,7 +19,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <BrowserRouter>
         <ThemeProvider>
           <AuthProvider>
-            <App />
+            <AccessibilityProvider>
+              <App />
+            </AccessibilityProvider>
           </AuthProvider>
         </ThemeProvider>
       </BrowserRouter>

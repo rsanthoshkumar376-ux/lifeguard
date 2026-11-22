@@ -1,17 +1,15 @@
 {
-  "version": "1.14.0",
-  "buildTime": 1732252000000,
+  "version": "1.15.0",
+  "buildTime": 1732260000000,
   "releaseDate": "2026-11-22",
   "changelog": [
-    "🛡️ Comprehensive Security, Privacy & Offline Reliability Engine (/security)",
-    "🔐 Web Crypto API AES-GCM 256-Bit Encryption: Zero-dependency client-side encryption with PBKDF2 key derivation and random 96-bit initialization vectors",
-    "👥 6-Role Role-Based Access Control (RBAC): Strict least-privilege matrix for Patient, Donor, Caregiver, Hospital, Administrator, and Emergency Responder with default-deny rules",
-    "📱 Public QR Hardening & Rate Limiting: 256-bit cryptographically secure tokens, instant token revocation, sliding-window scan rate limiting (max 15/min), and immutable access logging",
-    "📶 Offline Synchronization & Conflict Resolution: Encrypted pending sync queue, automatic online reconnection replay, timestamp-based conflict detection, and safe draft preservation during expired auth sessions",
-    "💾 Encrypted Backup & Disaster Recovery: Password-protected full clinical archive export (.enc.json) with SHA-256 integrity checksums, restoration report, and 16-character emergency recovery keys",
-    "🕵️ Active Session Management & Suspicious Activity: Heuristic detection of unusual devices or locations, remote session termination, and optional two-factor authentication (2FA)",
-    "🇮🇳 DPDP Act 2023 Compliance & Consent Center: Itemized affirmative consent notices across 6 Indian languages, immutable consent audit logs, statutory DPO grievance channel, and complete Right to Erasure workflow",
-    "🧪 Automated Security Test Suite: 7 interactive automated verification suites with live latency and assertion reporting covering RBAC, token revocation, cross-account isolation, and tamper resistance",
-    "🧹 PHI/PII Console Log Scrubbing: Safe logging wrapper preventing unintended exposure of patient health information, phone numbers, emails, and tokens in browser developer logs"
+    "🏥 Modern Healthcare Dashboard Redesign: Clean white & medical-blue aesthetic with Emergency Red exclusively reserved for life-critical SOS triggers",
+    "🔟 10 Dedicated Healthcare Cards: Emergency SOS, Medical ID QR, Blood Donor Network, Digital Health Records, Medicine & Visits, AI Assistant, Family Health Circle, Nearby Hospitals & ER, First-Aid & CPR, and Recent Activity Audit",
+    "♿ Advanced Accessibility Engine: WCAG AAA High Contrast mode (7:1+ contrast ratio, black/white/yellow), Large Text mode (115% scale with heightened tap targets), universal keyboard focus outlines (focus-visible:ring-4)",
+    "🗣️ Web Speech Voice Navigation: Hands-free voice recognition with auditory feedback (Emergency, Blood, Medical ID, Health, Medicines, Hospitals, First Aid, Home)",
+    "🏷️ Color-Independent Status Indicators: Every state verified with semantic icons and bracketed textual tags ([TAKEN], [PENDING], [VERIFIED], [URGENT])",
+    "🧭 Full 8-Item Navigation: Home, Emergency, Medical ID, Blood Network, Health, AI Assistant, Family, Profile with responsive Desktop Navbar & Mobile BottomNav",
+    "🚨 Universal Persistent Quick Emergency Button: Speed dial for 1-tap SOS dispatch, 108 Ambulance, 112 Emergency, Medical ID QR, and CPR Metronome accessible across every screen",
+    "🌐 6-Language Support: English, தமிழ் (Tamil), हिंदी (Hindi), తెలుగు (Telugu), ಕನ್ನಡ (Kannada), മലയാളം (Malayalam)"
   ]
 }

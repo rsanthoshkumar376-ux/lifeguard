@@ -307,3 +307,61 @@ html.dark .text-amber-900,
 html.dark .text-yellow-800 {
   color: #fde68a !important;
 }
+
+
+/* ============================================================
+   ACCESSIBILITY: LARGE TEXT & HIGH CONTRAST (WCAG AAA)
+   ============================================================ */
+
+/* 1. Large Text Mode */
+html.accessibility-large-text {
+  font-size: 115% !important;
+}
+
+html.accessibility-large-text button,
+html.accessibility-large-text a,
+html.accessibility-large-text input,
+html.accessibility-large-text select {
+  min-height: 48px !important;
+}
+
+/* 2. High Contrast Mode (WCAG AAA Compliant) */
+html.accessibility-high-contrast {
+  filter: contrast(120%);
+}
+
+html.accessibility-high-contrast body {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+html.accessibility-high-contrast .card,
+html.accessibility-high-contrast [class*="bg-white"],
+html.accessibility-high-contrast [class*="bg-gray-50"],
+html.accessibility-high-contrast [class*="bg-slate-50"],
+html.accessibility-high-contrast [class*="bg-slate-900"],
+html.accessibility-high-contrast [class*="bg-slate-950"] {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border-color: #ffffff !important;
+}
+
+html.accessibility-high-contrast button,
+html.accessibility-high-contrast a {
+  outline: 2px solid #ffffff !important;
+  outline-offset: 1px !important;
+}
+
+html.accessibility-high-contrast .text-gray-500,
+html.accessibility-high-contrast .text-gray-400,
+html.accessibility-high-contrast .text-slate-400,
+html.accessibility-high-contrast .text-slate-500 {
+  color: #f1f5f9 !important;
+}
+
+/* 3. Universal Keyboard Focus Ring */
+:focus-visible {
+  outline: 3px solid #2563eb !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.35) !important;
+}
